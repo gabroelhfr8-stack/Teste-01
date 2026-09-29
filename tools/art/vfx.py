@@ -26,7 +26,7 @@ def _grid(w, h):
     return (xx + 0.5) / w * 2 - 1, (yy + 0.5) / h * 2 - 1
 
 
-def wisp(frame: int, size: int = 32) -> np.ndarray:
+def wisp(frame: int, size: int = 64) -> np.ndarray:
     """A tall kite of light with a thin vertical glint: the flame of a sigil, not a soft ball."""
     x, y = _grid(size, size)
     ax, ay = np.abs(x), np.abs(y)
@@ -41,7 +41,7 @@ def wisp(frame: int, size: int = 32) -> np.ndarray:
     return _white((core + halo + needle + cross) * edge)
 
 
-def spark(frame: int, size: int = 32) -> np.ndarray:
+def spark(frame: int, size: int = 64) -> np.ndarray:
     x, y = _grid(size, size)
     s = [0.55, 0.85, 1.0, 0.7][frame % 4]
     long_, short = 0.62 * s, 0.045 + 0.02 * s
