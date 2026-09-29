@@ -351,7 +351,7 @@
   "screen.selarium.codex.grimoire.p4": "Configurações de segurança do servidor, proteção do dono e listas de permissão têm prioridade sobre as regras gerais.",
   "screen.selarium.codex.wards.title": "Proteções",
   "screen.selarium.codex.wards.p1": "Uma proteção é um campo contínuo. Cada ciclo paga manutenção e afeta alvos válidos dentro do alcance, respeitando limites de segurança.",
-  "screen.selarium.codex.wards.p2": "As receitas abaixo mostram pureza mínima, alcance, manutenção e intervalo. Falta de poeira, mana, permissão ou tempo de espera impede a ativação.",
+  "screen.selarium.codex.wards.p2": "Abra o Atlas de Proteções na próxima página para ver cada receita, com alcance, manutenção e intervalo. Falta de poeira, mana, permissão ou tempo de espera impede a ativação.",
   "screen.selarium.codex.tanks.title": "Tanques de Mana",
   "screen.selarium.codex.tanks.p1": "Tanques adjacentes sustentam sigilos e rituais depois da reserva do sigilo. O nível de mana fica visível nas quatro faces.",
   "screen.selarium.codex.tanks.p2": "Campos de pergaminho também usam fontes de mana próximas e a mana do criador durante a manutenção.",

@@ -351,7 +351,7 @@
   "screen.selarium.codex.grimoire.p4": "Server safety settings, owner protection and allow/deny lists take priority over general rules.",
   "screen.selarium.codex.wards.title": "Wards",
   "screen.selarium.codex.wards.p1": "A ward is a continuous field. Each cycle pays upkeep and affects valid targets within range, subject to safety limits.",
-  "screen.selarium.codex.wards.p2": "Recipes below show minimum purity, range, upkeep and interval. Missing dust, mana, permission or cooldown prevents activation.",
+  "screen.selarium.codex.wards.p2": "Open the Ward Atlas on the next page to browse every recipe with its range, upkeep and interval. Missing dust, mana, permission or cooldown prevents activation.",
   "screen.selarium.codex.tanks.title": "Mana Tanks",
   "screen.selarium.codex.tanks.p1": "Adjacent tanks sustain sigils and rituals after the sigil reserve. Mana fill is visible on all four sides.",
   "screen.selarium.codex.tanks.p2": "Scroll fields also use nearby mana sources and their creator's mana for upkeep.",
