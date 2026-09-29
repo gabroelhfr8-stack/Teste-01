@@ -69,7 +69,7 @@ Do this pass on a real GPU; CI only proves that rendering does not crash.
 - [ ] `selarium-client.toml`: `vfxQuality` (OFF/LOW/MEDIUM/HIGH), `wardShells` (OFF/NEAR/ALWAYS) and `shellOpacity` behave.
 - [ ] Mana Tank fluid rises and falls with the stored mana and animates; the HUD gauge matches the player's mana.
 - [ ] The Arcane Grinder lights up (glowing runes, light level 9, sparks) only while it is grinding.
-- [ ] Citadel walls and the Tangible barrier are visible and animated; the Tangible barrier can be hit and mined by owner rules.
+- [ ] Citadel walls (seams glow in the dark) and the Tangible barrier (translucent force field) are visible and animated.
 - [ ] Crystal buds grow through four visibly different stages.
 - [ ] Scroll seals take the ward's colour; scroll tooltips show the ward, its category and the creator's name.
 - [ ] Inventory, hand and ground models of dusts, crystals, books and scrolls look right (no purple/black checkers).
