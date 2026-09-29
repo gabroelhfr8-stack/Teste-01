@@ -76,7 +76,7 @@ jobs:
         run: |
           mkdir -p run
           printf '%s\n' 'onboardAccessibility:false' 'pauseOnLostFocus:false' 'tutorialStep:none' \
-            'renderDistance:8' 'maxFps:60' 'guiScale:2' 'soundCategory_master:0.0' > run/options.txt
+            'renderDistance:8' 'maxFps:60' 'guiScale:2' 'soundCategory_master:0.0' 'lang:pt_br' > run/options.txt
       - name: Play and take screenshots
         timeout-minutes: 20
         run: xvfb-run -a -s "-screen 0 1280x720x24" ./gradlew runClient -Psmoketest --no-daemon --stacktrace
