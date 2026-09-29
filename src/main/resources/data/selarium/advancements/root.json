@@ -1,0 +1,21 @@
+{
+  "display": {
+    "icon": {
+      "item": "selarium:arcane_crystal"
+    },
+    "title": {
+      "translate": "advancements.selarium.root.title"
+    },
+    "description": {
+      "translate": "advancements.selarium.root.description"
+    },
+    "background": "selarium:textures/gui/advancements/backgrounds/arcane_stone.png",
+    "show_toast": false,
+    "announce_to_chat": false
+  },
+  "criteria": {
+    "tick": {
+      "trigger": "minecraft:tick"
+    }
+  }
+}

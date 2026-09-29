@@ -4,10 +4,14 @@ import com.seleris.selarium.blockentity.ArcaneSigilBlockEntity;
 import com.seleris.selarium.inscription.ScrollData;
 import com.seleris.selarium.mana.capability.ManaCapability;
 import com.seleris.selarium.progression.AttunementMilestone;
+import com.seleris.selarium.progression.SelariumAdvancements;
+import com.seleris.selarium.ward.WardFx;
 import com.seleris.selarium.ward.WardManaService;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -42,6 +46,9 @@ public final class AttunementScrollItem extends Item {
         }
         mana.setUnlockedManaTier(tier);
         stack.shrink(1);
+        player.serverLevel().playSound(null, context.getClickedPos(), SoundEvents.PLAYER_LEVELUP, SoundSource.PLAYERS, 0.8F, 0.9F);
+        WardFx.ritual(player.serverLevel(), context.getClickedPos());
+        SelariumAdvancements.grant(player, "attunement_" + tier);
         player.displayClientMessage(Component.translatable("message.selarium.attunement.success", milestone.limit()), true);
         return InteractionResult.CONSUME;
     }

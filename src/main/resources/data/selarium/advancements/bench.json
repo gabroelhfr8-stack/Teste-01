@@ -1,0 +1,28 @@
+{
+  "parent": "selarium:first_ward",
+  "display": {
+    "icon": {
+      "item": "selarium:inscription_bench"
+    },
+    "title": {
+      "translate": "advancements.selarium.bench.title"
+    },
+    "description": {
+      "translate": "advancements.selarium.bench.description"
+    }
+  },
+  "criteria": {
+    "has_item": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "selarium:inscription_bench"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

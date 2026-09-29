@@ -395,6 +395,58 @@ def check_lang() -> dict:
     return en
 
 
+def check_advancements(items: list[str], en: dict, used_textures: set[str]) -> None:
+    """Icons, titles, parents and backgrounds of the advancement tree."""
+    folder = DATA / "advancements"
+    if not folder.is_dir():
+        return
+    known = set(items) | set(registered_blocks())
+    ids = {path.stem for path in folder.glob("*.json")}
+    count = 0
+    for path in sorted(folder.glob("*.json")):
+        doc = load_json(path)
+        if not isinstance(doc, dict):
+            continue
+        count += 1
+        display = doc.get("display", {})
+        icon = display.get("icon", {}).get("item", "")
+        namespace, name = split_ref(icon)
+        if namespace == NS and name not in known:
+            err(f"{rel(path)}: unknown icon item {icon}")
+        for field in ("title", "description"):
+            key = display.get(field, {}).get("translate", "")
+            if key not in en:
+                err(f"{rel(path)}: {field} translation key '{key}' is missing")
+        parent = doc.get("parent")
+        if parent:
+            namespace, name = split_ref(parent)
+            if namespace == NS and name not in ids:
+                err(f"{rel(path)}: unknown parent {parent}")
+        elif path.stem != "root":
+            err(f"{rel(path)}: only root.json may lack a parent")
+        background = display.get("background")
+        target = namespace_path(background) if background else None
+        if target is not None:
+            used_textures.add(str(target))
+            if not target.exists():
+                err(f"{rel(path)}: missing background {background}")
+        if "criteria" not in doc or not doc["criteria"]:
+            err(f"{rel(path)}: no criteria")
+        for criterion in doc.get("criteria", {}).values():
+            for item in criterion.get("conditions", {}).get("items", []):
+                for ref in item.get("items", []):
+                    namespace, name = split_ref(ref)
+                    if namespace == NS and name not in known:
+                        err(f"{rel(path)}: criterion references unknown item {ref}")
+    stats["advancements"] = count
+
+
+def namespace_path(ref: str) -> Path | None:
+    """Resource path of a `selarium:...` reference that already includes the folder (e.g. textures/...)."""
+    namespace, path = split_ref(ref)
+    return ASSETS / path if namespace == NS else None
+
+
 def check_versions() -> None:
     gradle = read(ROOT / "build.gradle")
     toml = read(RES / "META-INF" / "mods.toml")
@@ -444,6 +496,7 @@ def main() -> int:
     check_registry_assets(en, used_textures)
     check_loot_tables(registered_blocks())
     check_recipes(registered_items())
+    check_advancements(registered_items(), en, used_textures)
     check_particles(used_textures)
     check_sounds()
     check_textures(used_textures)

@@ -88,18 +88,58 @@ Avoid:
 
 ## Arcane Sigil
 
-The Arcane Sigil is drawn on the ground with powder and magical energy.
+The Arcane Sigil is drawn on the ground with powder and magical energy. It has no block model: `ArcaneSigilRenderer`
+builds it every frame from white, tintable textures so one set of assets serves all 32 wards.
+
+Layers, bottom to top:
+1. Chalk circle (`vfx/sigil/base_circle`), always visible.
+2. One small mark per dust type in the sigil (`vfx/sigil/component/<dust>`), tinted with the dust colour.
+3. The ward glyph (`vfx/sigil/glyph/<ward>`), tinted with the ward colour. Each glyph is a distinct vector rune.
+4. While active: slowly counter-rotating rings, orbiting runes, a floating focus crystal, a faint light column and the
+   translucent field shell that shows the real area.
 
 Rules:
-- No filled square background.
-- No translucent colored plate.
-- Use line-only circles, runes, and geometric patterns with real alpha transparency.
-- Base texture is a clean ritual circle.
-- Ward overlay is the main visual identity when a ward resolves.
-- Active overlay is a subtle glow, not a second full design.
-- Do not render every component at full strength if it makes the sigil unreadable.
+- No filled square background and no translucent plate; only line work with real alpha.
+- Glow is additive and unlit (`SelariumRenderTypes.ADDITIVE`), so it reads at night and never washes out the ground.
+- The inactive sigil is quiet; activation is the moment of spectacle (expanding ring, rune burst).
+- Every animated part can be switched off in `selarium-client.toml` (`sigilAnimations`, `sigilFloatingRunes`,
+  `sigilLightBeam`, `wardShells`, `vfxQuality`).
 
 Prefer simple and beautiful over complex and noisy.
+
+## Ward Colour Language
+
+Every ward has a signature primary and secondary colour in `WardStyles`, and one of four shell styles:
+
+- `SOFT`: flowing energy dome, the default for buffs and utilities.
+- `HEX`: hexagonal force-field lattice, for defensive and hostile control wards (Banishment, Crushing, Stasis, Deflection...).
+- `RUNES`: scrolling band of runes, for wards about information and subtle effects (Whispering, Silence, Transmutation).
+- `NONE`: the ward is already visible as real blocks (Citadel, Tangible).
+
+Colours are chosen so neighbours in a category stay distinguishable: blues and greens for support, warm golds and
+greens for utilities, reds and magentas for hostile pressure, violets for structures, and gold, teal and orange for events. The same colour
+tints the sigil glyph, the field shell, the ward's particles and the seal of its scroll.
+
+## Particles and VFX Vocabulary
+
+Four custom particles (`selarium:wisp`, `spark`, `rune`, `ring`) carry a colour and a scale, so the server can send one
+particle type in any ward colour (`WardFx`, `GlowParticleOptions`).
+
+- **Wisp**: soft orb that drifts upwards; the ambient life of a sigil and the shimmer on every creature a ward touches.
+- **Spark**: small fast glint; bursts for events (a deflected projectile, a prevented death), dotted trails for drain,
+  soul-chain and mana transfer, and the work of the Grinder and the Inscription Bench.
+- **Rune**: a tiny floating glyph, used only in the burst when a sigil activates.
+- **Ring**: a flat ring that expands along the ground; the visible beat of every ward cycle and of activation.
+
+Use particles sparingly: one clear cue per event. Continuous effects live on the sigil renderer, not in particle floods.
+
+## Texture Conventions
+
+- Block and item textures are 32x32 pixel art with a consistent light direction (upper left), a one-pixel dark outline
+  for items, and colour ramps from `tools/art/pal.py`.
+- Crystals are faceted with a bright ridge; metal is a warm gilded trim; stone is desaturated violet-grey.
+- Animated block textures (Citadel wall, Tangible barrier) use a `.png.mcmeta` with a vertical strip of frames.
+- Textures are generated (`python3 tools/art/build_all.py`); change the generator, not the PNG.
 
 ## Arcane Grinder GUI
 

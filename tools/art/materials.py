@@ -225,6 +225,20 @@ def ink(seed=74):
     return img
 
 
+def advancement_tile(seed=81):
+    """16x16 tileable dark violet flagstone; the advancement screen tiles it at 16 GUI pixels."""
+    ramp = pal.STONE[0:5]
+    n = px.fbm(16, 16, 4, seed, 3)
+    img = px.blank(16)
+    img[..., 3] = 1
+    img[..., :3] = ramp_lookup(0.30 + n * 0.30, ramp, 0.0, 1.0, dither=0.25)[..., :3]
+    img[0, :, :3] = pal.STONE[0]             # seams between slabs
+    img[:, 0, :3] = pal.STONE[0]
+    img[1, 1:, :3] = pal.STONE[3]            # lit edge under the seam
+    img[1:, 1, :3] = pal.STONE[3]
+    return img
+
+
 def build_all(assets):
     out = assets / "textures" / "block"
     items = {
@@ -237,4 +251,5 @@ def build_all(assets):
     }
     for name, img in items.items():
         px.save(img, out / f"{name}.png")
+    px.save(advancement_tile(), assets / "textures" / "gui" / "advancements" / "backgrounds" / "arcane_stone.png")
     return items

@@ -1,0 +1,29 @@
+{
+  "parent": "selarium:grinder",
+  "display": {
+    "icon": {
+      "item": "selarium:basic_arcane_dust"
+    },
+    "title": {
+      "translate": "advancements.selarium.dust.title"
+    },
+    "description": {
+      "translate": "advancements.selarium.dust.description"
+    }
+  },
+  "criteria": {
+    "has_item": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "selarium:basic_arcane_dust",
+              "selarium:arcane_dust"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

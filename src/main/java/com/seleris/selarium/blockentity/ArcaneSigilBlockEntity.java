@@ -10,6 +10,7 @@ import com.seleris.selarium.ward.WardStyles;
 import net.minecraft.util.RandomSource;
 import com.seleris.selarium.registry.SelariumBlockEntities;
 import com.seleris.selarium.registry.SelariumBlocks;
+import com.seleris.selarium.registry.SelariumSoundEvents;
 import com.seleris.selarium.ward.ActiveWardIndex;
 import com.seleris.selarium.ward.WardDefinition;
 import com.seleris.selarium.ward.WardContext;
@@ -24,6 +25,9 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -447,14 +451,26 @@ public class ArcaneSigilBlockEntity extends BlockEntity implements WardFieldSour
         lastUpkeepDebug = "not paid yet";
         range = Math.max(1, definition.range());
         setChangedAndSync();
+        playCue(SoundEvents.BEACON_ACTIVATE, 0.6F, 1.5F);
+        playCue(SelariumSoundEvents.ARCANE_CRYSTAL_SHIMMER.get(), 0.35F, 0.85F);
     }
 
     public void deactivateWard(int cooldownTicks) {
+        boolean wasActive = active;
         cleanupTemporaryWardBlocks();
         active = false;
         wardDurationRemainingTicks = 0;
         wardCooldownRemainingTicks = Math.max(wardCooldownRemainingTicks, cooldownTicks);
         setChangedAndSync();
+        if (wasActive) {
+            playCue(SoundEvents.BEACON_DEACTIVATE, 0.5F, 1.7F);
+        }
+    }
+
+    private void playCue(SoundEvent sound, float volume, float pitch) {
+        if (level != null && !level.isClientSide) {
+            level.playSound(null, worldPosition, sound, SoundSource.BLOCKS, volume, pitch);
+        }
     }
 
     public void recordManaGeneratedThisActivation(int amount) {

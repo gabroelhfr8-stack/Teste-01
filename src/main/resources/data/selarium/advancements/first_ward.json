@@ -1,0 +1,20 @@
+{
+  "parent": "selarium:sigil",
+  "display": {
+    "icon": {
+      "item": "selarium:basic_focus_dust"
+    },
+    "title": {
+      "translate": "advancements.selarium.first_ward.title"
+    },
+    "description": {
+      "translate": "advancements.selarium.first_ward.description"
+    },
+    "frame": "goal"
+  },
+  "criteria": {
+    "code": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

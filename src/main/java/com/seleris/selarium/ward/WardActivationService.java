@@ -6,6 +6,7 @@ import com.seleris.selarium.dust.DustPurity;
 import com.seleris.selarium.dust.DustType;
 import com.seleris.selarium.grimoire.WardingGrimoireData;
 import com.seleris.selarium.progression.AttunementProgressSavedData;
+import com.seleris.selarium.progression.SelariumAdvancements;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -47,6 +48,15 @@ public final class WardActivationService {
             boolean unlocked = WardingGrimoireData.unlockWardForOwner(serverLevel, sigil.getOwner(), definition.type());
             if (unlocked && player.getUUID().equals(sigil.getOwner())) {
                 player.displayClientMessage(Component.translatable("message.selarium.grimoire.ward_recorded", Component.translatable(definition.type().getTranslationKey())), true);
+            }
+            if (player.getUUID().equals(sigil.getOwner())) {
+                SelariumAdvancements.grant(player, "first_ward");
+                if (definition.tier() == WardTier.REFINED) {
+                    SelariumAdvancements.grant(player, "refined_ward");
+                }
+                if (AttunementProgressSavedData.get(serverLevel).distinctCount(sigil.getOwner()) >= WardType.values().length - 1) {
+                    SelariumAdvancements.grant(player, "all_wards");
+                }
             }
         }
         return ActivationResult.ok();

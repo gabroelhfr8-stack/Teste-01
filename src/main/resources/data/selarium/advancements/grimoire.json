@@ -1,0 +1,28 @@
+{
+  "parent": "selarium:first_ward",
+  "display": {
+    "icon": {
+      "item": "selarium:warding_grimoire"
+    },
+    "title": {
+      "translate": "advancements.selarium.grimoire.title"
+    },
+    "description": {
+      "translate": "advancements.selarium.grimoire.description"
+    }
+  },
+  "criteria": {
+    "has_item": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "selarium:warding_grimoire"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "parent": "selarium:first_ward",
+  "display": {
+    "icon": {
+      "item": "selarium:mana_tank"
+    },
+    "title": {
+      "translate": "advancements.selarium.tank.title"
+    },
+    "description": {
+      "translate": "advancements.selarium.tank.description"
+    }
+  },
+  "criteria": {
+    "has_item": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "selarium:mana_tank"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,6 +1,7 @@
 package com.seleris.selarium.ward;
 
 import com.seleris.selarium.particle.GlowParticleOptions;
+import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
@@ -14,7 +15,7 @@ public final class WardFx {
     }
 
     /** A ring that sweeps outwards along the ground from the field's centre. */
-    public static void pulse(ServerLevel level, net.minecraft.core.BlockPos pos, WardType type, int range) {
+    public static void pulse(ServerLevel level, BlockPos pos, WardType type, int range) {
         int color = WardStyles.secondary(type);
         level.sendParticles(GlowParticleOptions.ring(color, range), pos.getX() + 0.5D, pos.getY() + 0.06D, pos.getZ() + 0.5D,
                 1, 0.0D, 0.0D, 0.0D, 0.0D);
@@ -49,5 +50,16 @@ public final class WardFx {
             level.sendParticles(options, from.x + (to.x - from.x) * t, from.y + (to.y - from.y) * t, from.z + (to.z - from.z) * t,
                     1, 0.02D, 0.02D, 0.02D, 0.0D);
         }
+    }
+
+    /** The flourish of a completed attunement ritual at a sigil: two rings, rising runes and a shower of sparks. */
+    public static void ritual(ServerLevel level, BlockPos pos) {
+        double x = pos.getX() + 0.5D;
+        double y = pos.getY() + 0.1D;
+        double z = pos.getZ() + 0.5D;
+        level.sendParticles(GlowParticleOptions.ring(0xFFE6A8, 7), x, y, z, 1, 0.0D, 0.0D, 0.0D, 0.0D);
+        level.sendParticles(GlowParticleOptions.ring(0xC9A8FF, 4), x, y + 0.02D, z, 1, 0.0D, 0.0D, 0.0D, 0.0D);
+        level.sendParticles(GlowParticleOptions.rune(0xFFE6A8, 1.1F), x, y + 0.3D, z, 20, 0.5D, 0.3D, 0.5D, 0.05D);
+        level.sendParticles(GlowParticleOptions.spark(0xFFFFFF, 0.9F), x, y + 0.6D, z, 30, 0.4D, 0.6D, 0.4D, 0.12D);
     }
 }

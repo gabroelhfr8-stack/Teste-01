@@ -1,0 +1,23 @@
+{
+  "parent": "selarium:refined_ward",
+  "display": {
+    "icon": {
+      "item": "selarium:arcane_block"
+    },
+    "title": {
+      "translate": "advancements.selarium.all_wards.title"
+    },
+    "description": {
+      "translate": "advancements.selarium.all_wards.description"
+    },
+    "frame": "challenge"
+  },
+  "criteria": {
+    "code": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "rewards": {
+    "experience": 200
+  }
+}

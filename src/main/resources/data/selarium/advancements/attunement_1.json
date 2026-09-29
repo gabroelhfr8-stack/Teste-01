@@ -1,0 +1,20 @@
+{
+  "parent": "selarium:refined_ward",
+  "display": {
+    "icon": {
+      "item": "selarium:attunement_scroll"
+    },
+    "title": {
+      "translate": "advancements.selarium.attunement_1.title"
+    },
+    "description": {
+      "translate": "advancements.selarium.attunement_1.description"
+    },
+    "frame": "goal"
+  },
+  "criteria": {
+    "code": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

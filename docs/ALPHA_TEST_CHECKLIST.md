@@ -57,9 +57,26 @@ Use this checklist for the first internal survival pass. Start with default conf
 - [ ] Player allow and deny lists persist.
 - [ ] Entity type allow and deny lists persist.
 
+## Visuals and VFX
+
+Do this pass on a real GPU; CI only proves that rendering does not crash.
+
+- [ ] An unused sigil shows a chalk circle; each dust type adds its own mark.
+- [ ] An active sigil shows its ward glyph, rotating rings, orbiting runes, the floating focus crystal and the light column.
+- [ ] The translucent field shell matches the real area (a sphere of radius `range`) and is tinted per ward category.
+- [ ] Turning a ward on plays the expanding ring and rune burst; turning it off fades out with wisps.
+- [ ] Each ward cycle pulses; affected creatures shimmer; event wards (Immortal, Deflection, Disruption) burst.
+- [ ] `selarium-client.toml`: `vfxQuality` (OFF/LOW/MEDIUM/HIGH), `wardShells` (OFF/NEAR/ALWAYS) and `shellOpacity` behave.
+- [ ] Mana Tank fluid rises and falls with the stored mana and animates; the HUD gauge matches the player's mana.
+- [ ] The Arcane Grinder lights up (glowing runes, light level 9, sparks) only while it is grinding.
+- [ ] Citadel walls and the Tangible barrier are visible and animated; the Tangible barrier can be hit and mined by owner rules.
+- [ ] Crystal buds grow through four visibly different stages.
+- [ ] Scroll seals take the ward's colour; scroll tooltips show the ward, its category and the creator's name.
+- [ ] Inventory, hand and ground models of dusts, crystals, books and scrolls look right (no purple/black checkers).
+
 ## Dedicated Server
 
-- [ ] Run `.\gradlew.bat runServer --no-daemon`.
+- [ ] Run `./gradlew runServer` (or `runGameTestServer` for the automated checks).
 - [ ] Confirm there is no client-only class crash.
 - [ ] Confirm the run reaches the normal EULA stop or server startup.
 - [ ] If debug commands are needed, enable `debugCommandsEnabled` locally in config for that test world.

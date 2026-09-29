@@ -10,6 +10,9 @@ These notes summarize the current Alpha defaults. Exact values live in `Selarium
 - Boss targeting is disabled by default.
 - Entity and block hard caps are performance guards, not the main balance mechanism.
 - Warding Grimoire rules can restrict targeting, but server configs still win.
+- Every ward area is a sphere of radius `range` around the sigil (`WardArea`), the same volume the client draws.
+  Before 0.3.0 most wards queried a cube of the same half-side, so effective coverage dropped to about half. If a
+  ward feels too small in playtests, raise its `range` in the config rather than reintroducing cubes.
 
 ## Tier 1: Low Cost
 

@@ -1,0 +1,28 @@
+{
+  "parent": "selarium:crystal",
+  "display": {
+    "icon": {
+      "item": "selarium:arcane_grinder"
+    },
+    "title": {
+      "translate": "advancements.selarium.grinder.title"
+    },
+    "description": {
+      "translate": "advancements.selarium.grinder.description"
+    }
+  },
+  "criteria": {
+    "has_item": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "selarium:arcane_grinder"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

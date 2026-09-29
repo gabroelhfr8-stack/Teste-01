@@ -1,0 +1,28 @@
+{
+  "parent": "selarium:root",
+  "display": {
+    "icon": {
+      "item": "selarium:arcane_crystal"
+    },
+    "title": {
+      "translate": "advancements.selarium.crystal.title"
+    },
+    "description": {
+      "translate": "advancements.selarium.crystal.description"
+    }
+  },
+  "criteria": {
+    "has_item": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "selarium:arcane_crystal"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

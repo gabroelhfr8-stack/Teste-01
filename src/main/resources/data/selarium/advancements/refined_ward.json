@@ -1,0 +1,20 @@
+{
+  "parent": "selarium:first_ward",
+  "display": {
+    "icon": {
+      "item": "selarium:refined_aegis_dust"
+    },
+    "title": {
+      "translate": "advancements.selarium.refined_ward.title"
+    },
+    "description": {
+      "translate": "advancements.selarium.refined_ward.description"
+    },
+    "frame": "goal"
+  },
+  "criteria": {
+    "code": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

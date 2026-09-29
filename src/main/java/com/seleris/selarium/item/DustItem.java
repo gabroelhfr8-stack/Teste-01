@@ -3,6 +3,7 @@ package com.seleris.selarium.item;
 import com.seleris.selarium.blockentity.ArcaneSigilBlockEntity;
 import com.seleris.selarium.dust.DustDefinition;
 import com.seleris.selarium.dust.DustType;
+import com.seleris.selarium.progression.SelariumAdvancements;
 import com.seleris.selarium.registry.SelariumBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -77,6 +78,7 @@ public class DustItem extends Item {
 
             if (player != null) {
                 player.displayClientMessage(Component.translatable("message.selarium.sigil.created"), true);
+                SelariumAdvancements.grant(player, "sigil");
             }
         }
 

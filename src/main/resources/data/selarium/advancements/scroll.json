@@ -1,0 +1,28 @@
+{
+  "parent": "selarium:bench",
+  "display": {
+    "icon": {
+      "item": "selarium:ward_scroll"
+    },
+    "title": {
+      "translate": "advancements.selarium.scroll.title"
+    },
+    "description": {
+      "translate": "advancements.selarium.scroll.description"
+    }
+  },
+  "criteria": {
+    "has_item": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "selarium:ward_scroll"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

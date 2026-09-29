@@ -1,0 +1,28 @@
+{
+  "parent": "selarium:root",
+  "display": {
+    "icon": {
+      "item": "selarium:selarium_codex"
+    },
+    "title": {
+      "translate": "advancements.selarium.codex.title"
+    },
+    "description": {
+      "translate": "advancements.selarium.codex.description"
+    }
+  },
+  "criteria": {
+    "has_item": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "selarium:selarium_codex"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

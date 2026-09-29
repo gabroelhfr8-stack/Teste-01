@@ -5,6 +5,7 @@ import com.seleris.selarium.progression.AttunementProgressSavedData;
 import com.seleris.selarium.ward.WardActivationService;
 import com.seleris.selarium.ward.WardDefinition;
 import com.seleris.selarium.ward.WardDefinitions;
+import com.seleris.selarium.ward.WardFx;
 import com.seleris.selarium.ward.WardProjectionSavedData;
 import com.seleris.selarium.ward.WardStyles;
 import com.seleris.selarium.ward.WardType;
@@ -14,6 +15,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
@@ -78,6 +81,8 @@ public final class WardScrollItem extends Item {
                 .cast(player, definition, target, isMobile(type));
         if (!result.success()) return fail(player, result.messageKey());
         stack.shrink(1);
+        player.serverLevel().playSound(null, target, SoundEvents.ENCHANTMENT_TABLE_USE, SoundSource.PLAYERS, 0.9F, 1.1F);
+        WardFx.pulse(player.serverLevel(), target, type, definition.range());
         player.displayClientMessage(Component.translatable("message.selarium.scroll.cast",
                 Component.translatable(type.getTranslationKey())), true);
         return true;

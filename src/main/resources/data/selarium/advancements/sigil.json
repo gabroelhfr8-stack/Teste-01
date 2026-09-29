@@ -1,0 +1,20 @@
+{
+  "parent": "selarium:dust",
+  "display": {
+    "icon": {
+      "item": "selarium:arcane_sigil"
+    },
+    "title": {
+      "translate": "advancements.selarium.sigil.title"
+    },
+    "description": {
+      "translate": "advancements.selarium.sigil.description"
+    },
+    "frame": "goal"
+  },
+  "criteria": {
+    "code": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}
