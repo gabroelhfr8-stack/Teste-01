@@ -32,7 +32,7 @@ directories, which helps on synced folders such as OneDrive.
 |---|---|
 | **Validate assets** | `tools/validate_assets.py`: broken JSON, missing textures or parents, models that reference nothing, missing or mismatched translations, registry names without assets, loot tables and recipes pointing at unknown items, unused textures. |
 | **Compile and package** | `./gradlew build`, then the GameTests on a real Forge server (registries, wards, recipes, worldgen, loot tables, save/load), then `tools/check_server_log.py`, which fails on real ERROR lines (datapack parse errors, exceptions). |
-| **Client smoke test** | Boots the real game under Xvfb with Mesa software OpenGL, creates a flat world, builds a showcase and takes screenshots (`ClientSmokeTest`). A broken model, particle, shader or renderer shows up as a crash or a log error. Screenshots are attached to the run (`client-smoke` artifact) and printed into the log by `tools/dump_smoke.py`. |
+| **Client smoke test** (required) | Boots the real game under Xvfb with Mesa software OpenGL, creates a flat world, builds a showcase and takes screenshots (`ClientSmokeTest`). A broken model, particle, shader or renderer shows up as a crash or a log error. Screenshots are attached to the run (`client-smoke` artifact) and printed into the log by `tools/dump_smoke.py`. |
 
 The smoke test only proves that the client renders without errors. It is software rendering at 854x480, so judge
 looks and performance on a real GPU.

@@ -37,11 +37,13 @@ numa GPU o resultado é mais nítido e fluido).
 
 | | |
 |---|---|
-| ![Cinco campos ativos à noite](docs/img/gallery/campos_noite.jpg)<br>*Cinco campos ativos à noite: cada proteção tem a sua cor e o seu estilo de casca.* | ![O sigilo ativo](docs/img/gallery/sigilo_detalhe.jpg)<br>*O sigilo ativo: círculo de giz, glifo, anéis de luz, cristal-foco e coluna de luz.* |
-| ![Casca de runas](docs/img/gallery/casca_de_runas.jpg)<br>*Casca de runas (Ward Sussurrante).* | ![Campo hostil](docs/img/gallery/banimento.jpg)<br>*Campo hostil (Banimento): um anel varre o chão a cada ciclo.* |
-| ![Muralha da Cidadela](docs/img/gallery/cidadela.jpg)<br>*Muralha da Cidadela: as juntas brilham no escuro.* | ![Campo de pergaminho](docs/img/gallery/projecao.jpg)<br>*Campo de pergaminho (sem block entity), com a muralha ao fundo.* |
-| ![Moedores Arcanos](docs/img/gallery/maquinas.jpg)<br>*Moedores Arcanos, parado e ligado (runas acesas).* | ![Tanques de mana](docs/img/gallery/tanques.jpg)<br>*Tanques de mana com 0%, 50% e 100%.* |
-| ![Materiais](docs/img/gallery/materiais.jpg)<br>*Blocos do geodo, madeira arcana, folhas e pétalas.* | |
+| ![Campos ativos à noite](docs/img/gallery/campos_noite.jpg)<br>*Campos ativos à noite: cada proteção tem a sua cor, e cada contorno no chão é um polígono.* | ![O sigilo ativo](docs/img/gallery/sigilo_detalhe.jpg)<br>*O sigilo ativo: giz desenhado à mão, glifo, anéis poligonais, cristal-foco e coluna de luz.* |
+| ![Cúpula de cristal](docs/img/gallery/facetas.jpg)<br>*A cúpula de cristal de perto: facetas com brilho próprio, arestas luminosas e reflexos nos cantos.* | ![Casca de runas](docs/img/gallery/casca_de_runas.jpg)<br>*Casca de runas (Ward Sussurrante): uma faixa de runas percorre as facetas.* |
+| ![Campo hostil](docs/img/gallery/banimento.jpg)<br>*Campo hostil (Banimento): um anel octogonal varre o chão a cada ciclo.* | ![Muralha da Cidadela](docs/img/gallery/cidadela.jpg)<br>*Muralha da Cidadela: as juntas brilham no escuro.* |
+| ![Campo de pergaminho](docs/img/gallery/projecao.jpg)<br>*Campo de pergaminho (sem block entity), com a muralha ao fundo.* | ![Moedores Arcanos](docs/img/gallery/maquinas.jpg)<br>*Moedores Arcanos, parado e ligado (runas acesas).* |
+| ![Tanques de mana](docs/img/gallery/tanques.jpg)<br>*Tanques de mana com 0%, 50% e 100%.* | ![Materiais](docs/img/gallery/materiais.jpg)<br>*Blocos do geodo, madeira arcana, folhas e pétalas.* |
+| ![Geodo](docs/img/gallery/geodo.jpg)<br>*Geodo cortado ao meio: uma cavidade de cristal irregular e facetada, não uma bola perfeita.* | ![Atlas de Proteções](docs/img/gallery/gui_atlas.jpg)<br>*Atlas de Proteções no Codex (em português; textos longos encolhem para caber).* |
+| ![Bancada de Inscrição](docs/img/gallery/gui_bancada.jpg)<br>*Bancada de Inscrição.* | |
 
 ## Como jogar (o essencial)
 
