@@ -1,4 +1,4 @@
-"""Book cover textures with gilded emblems (Codex and Warding Grimoire) and the scroll ribbon/seal sprites."""
+"""Book cover textures with gilded emblems (Codex and Warding Grimoire), the spine, gem and bookmark ribbon."""
 from __future__ import annotations
 
 import numpy as np
@@ -7,7 +7,6 @@ from PIL import Image
 from . import materials, pal, px
 from .blocks import ramp_lookup
 from .sigil import make_glyph
-from .vec import octagon_norm
 
 S = 32
 
@@ -77,33 +76,10 @@ def ribbon(hue: str) -> np.ndarray:
     return img
 
 
-def seal_mask() -> np.ndarray:
-    """Greyscale wax seal (tinted per ward by an ItemColor handler): a chipped octagon with a raised diamond star."""
-    img = px.blank(S)
-    yy, xx = np.mgrid[0:S, 0:S].astype(np.float32)
-    dx, dy = xx - 15.5, yy - 15.5
-    chips = (px.fbm(S, S, 5, 87, 2, tile=False) - 0.5) * 2.2          # cracked, uneven edge
-    d = octagon_norm(dx, dy) * 1.0 + chips
-    disc = d < 13.2
-    img[..., 3] = disc.astype(np.float32)
-    shade = np.clip(0.78 - (xx + yy - 31) / 90.0 + (px.fbm(S, S, 6, 86, 2, tile=False) - 0.5) * 0.25, 0, 1)
-    img[..., :3] = shade[..., None]
-    rim = disc & (d > 10.9)
-    img[..., :3] = np.where(rim[..., None], np.clip(shade[..., None] * 1.22, 0, 1), img[..., :3])
-    inner = (d < 9.2) & (d > 8.0)
-    img[..., :3] = np.where(inner[..., None], shade[..., None] * 0.62, img[..., :3])
-    star = (np.abs(dx) + np.abs(dy) < 6.2) & ((np.abs(dx) < 1.4) | (np.abs(dy) < 1.4) | (np.abs(dx) + np.abs(dy) < 3.4))
-    img[..., :3] = np.where(star[..., None], np.clip(shade[..., None] * 1.3, 0, 1), img[..., :3])
-    return img
-
-
 def build_all(assets):
     out = assets / "textures" / "item"
     blk = assets / "textures" / "block"
     px.save(cover("violet", "spectral"), out / "codex_cover.png")
     px.save(cover("indigo", "bulwark"), out / "grimoire_cover.png")
     px.save(spine(), out / "book_spine.png")
-    px.save(ribbon("violet"), out / "ribbon_violet.png")
-    px.save(ribbon("cyan"), out / "ribbon_cyan.png")
     px.save(ribbon("gold"), out / "ribbon_gold.png")
-    px.save(seal_mask(), out / "scroll_seal.png")

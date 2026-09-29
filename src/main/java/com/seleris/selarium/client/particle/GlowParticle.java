@@ -1,6 +1,8 @@
 package com.seleris.selarium.client.particle;
 
 import com.seleris.selarium.particle.GlowParticleOptions;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import net.minecraft.client.Camera;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleProvider;
@@ -8,6 +10,7 @@ import net.minecraft.client.particle.ParticleRenderType;
 import net.minecraft.client.particle.SpriteSet;
 import net.minecraft.client.particle.TextureSheetParticle;
 import net.minecraft.util.Mth;
+import net.minecraft.world.phys.Vec3;
 
 /** Glowing sprite particle: wisps drift upwards, sparks pop and decelerate, runes float and turn. */
 public class GlowParticle extends TextureSheetParticle {
@@ -98,6 +101,22 @@ public class GlowParticle extends TextureSheetParticle {
         if (kind != Kind.RUNE) {
             this.setSpriteFromAge(sprites);
         }
+    }
+
+    @Override
+    public void render(VertexConsumer consumer, Camera camera, float partialTicks) {
+        // a particle that drifts right past the lens would fill the screen with one big pixel: it melts away instead
+        Vec3 view = camera.getPosition();
+        double dx = Mth.lerp(partialTicks, this.xo, this.x) - view.x;
+        double dy = Mth.lerp(partialTicks, this.yo, this.y) - view.y;
+        double dz = Mth.lerp(partialTicks, this.zo, this.z) - view.z;
+        float near = Mth.clamp((float) (Math.sqrt(dx * dx + dy * dy + dz * dz) - 0.7D) / 1.6F, 0.0F, 1.0F);
+        float alpha = this.alpha;
+        this.alpha = alpha * near;
+        if (this.alpha > 0.004F) {
+            super.render(consumer, camera, partialTicks);
+        }
+        this.alpha = alpha;
     }
 
     @Override

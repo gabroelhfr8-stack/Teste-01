@@ -34,6 +34,8 @@ public final class WardShellRenderer {
     private static final float GROUND_Y = 0.03F;
     /** Faces farther than this from the camera are not drawn. */
     private static final float MAX_DISTANCE = 96.0F;
+    /** Glints are a distant sparkle: none is drawn this close to the camera. */
+    private static final float GLINT_MIN_DISTANCE = 6.0F;
     private static final int INERT_COLOR = 0x7A8494;
 
     /** Corners of each face direction (+X, -X, +Y, -Y, +Z, -Z) relative to the cell's minimum corner, counter-clockwise from outside. */
@@ -131,7 +133,9 @@ public final class WardShellRenderer {
             float edge = 1.0F - Math.abs(facing);
             float near = 1.0F - Mth.clamp((dist - 10.0F) / 50.0F, 0.0F, 0.85F);
             float wave = 0.70F + 0.30F * Mth.sin(sweep - cy * 0.55F);
-            int alpha = VfxDraw.alpha(baseAlpha * (0.22F + 1.15F * edge * edge) * wave * (0.40F + 0.60F * near));
+            // faces right next to the camera melt away instead of filling the screen
+            float veil = Mth.clamp((dist - 0.8F) / 2.2F, 0.0F, 1.0F);
+            int alpha = VfxDraw.alpha(baseAlpha * (0.22F + 1.15F * edge * edge) * wave * (0.40F + 0.60F * near) * veil);
             if (alpha <= 2) {
                 continue;
             }
@@ -164,7 +168,7 @@ public final class WardShellRenderer {
             float dx = vx - cx, dy = vy - cy, dz = vz - cz;
             float dist = Mth.sqrt(dx * dx + dy * dy + dz * dz);
             float facing = (n[0] * dx + n[1] * dy + n[2] * dz) / Math.max(dist, 1.0E-4F);
-            if ((outside && facing <= 0.0F) || (!outside && facing >= 0.0F) || dist > MAX_DISTANCE) {
+            if ((outside && facing <= 0.0F) || (!outside && facing >= 0.0F) || dist > MAX_DISTANCE || dist < GLINT_MIN_DISTANCE) {
                 continue;
             }
             float wave = Mth.sin(time * 0.06F + i * 1.9F);
@@ -172,7 +176,7 @@ public final class WardShellRenderer {
             if (flash < 0.02F) {
                 continue;
             }
-            float half = Mth.clamp(0.14F + 0.016F * dist, 0.18F, 0.9F) * (0.6F + 0.6F * flash);
+            float half = Mth.clamp(0.10F + 0.010F * dist, 0.12F, 0.32F) * (0.6F + 0.6F * flash);
             VfxDraw.billboard(consumer, poseStack, camera, cx, cy, cz, half, 0.0F, rgb,
                     VfxDraw.alpha(0.9F * flash * Math.min(1.0F, opacity * 1.4F)), LightTexture.FULL_BRIGHT);
         }
@@ -189,7 +193,7 @@ public final class WardShellRenderer {
         float base = 0.75F * pulse * Math.min(1.0F, opacity);
         for (int i = 0; i < field.edgeCount; i++) {
             int x = field.edgeX[i], z = field.edgeZ[i];
-            float run = 0.55F + 0.45F * Mth.sin(time * 0.12F - (float) Math.atan2(z, x) * 2.0F);
+            float run = 0.72F + 0.28F * Mth.sin(time * 0.12F - (float) Math.atan2(z, x) * 2.0F);
             int alpha = VfxDraw.alpha(base * run);
             if (alpha <= 2) {
                 continue;

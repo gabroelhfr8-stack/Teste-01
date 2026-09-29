@@ -21,6 +21,7 @@ import com.seleris.selarium.ward.WardProjectionSavedData;
 import com.seleris.selarium.ward.WardRequirement;
 import com.seleris.selarium.ward.WardType;
 import net.minecraft.advancements.Advancement;
+import net.minecraft.client.CameraType;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Screenshot;
 import net.minecraft.client.particle.Particle;
@@ -39,6 +40,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Difficulty;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -244,6 +246,24 @@ public final class ClientSmokeTest {
         steps.add(new Step("tanks close", "22_tanks_close_day", 40, camera(-3, 1.6, 18.4, -3, 0.7, 16)));
         steps.add(new Step("crystals and materials", "16_materials_day", 40, camera(0, 2.4, 24, 0, 0.6, 20)));
         steps.add(new Step("geode sample (day)", "35_geode_sample_day", 40, camera(31, 6, -36, 26, 3, -22)));
+        // books are held open, scrolls are flat sprites: check both hands' views, from the front and from behind
+        steps.add(new Step("hold the codex", "40_hand_codex_first", 30, mc -> {
+            hold(mc, new ItemStack(SelariumItems.SELARIUM_CODEX.get()));
+            camera(-3, 2.5, 30, -3, 1.4, 20).run(mc);
+        }));
+        steps.add(new Step("codex from the front", "41_hand_codex_third_front", 30, mc -> mc.options.setCameraType(CameraType.THIRD_PERSON_FRONT)));
+        steps.add(new Step("codex from behind", "42_hand_codex_third_back", 30, mc -> mc.options.setCameraType(CameraType.THIRD_PERSON_BACK)));
+        steps.add(new Step("hold the grimoire", "43_hand_grimoire_third_front", 30, mc -> {
+            hold(mc, new ItemStack(SelariumItems.WARDING_GRIMOIRE.get()));
+            mc.options.setCameraType(CameraType.THIRD_PERSON_FRONT);
+        }));
+        steps.add(new Step("grimoire in first person", "44_hand_grimoire_first", 30, mc -> mc.options.setCameraType(CameraType.FIRST_PERSON)));
+        steps.add(new Step("hold a ward scroll", "45_hand_scroll_first", 30, mc -> hold(mc, ScrollData.ward(mc.player, WardType.BANISHMENT))));
+        steps.add(new Step("scroll from the front", "46_hand_scroll_third_front", 30, mc -> mc.options.setCameraType(CameraType.THIRD_PERSON_FRONT)));
+        steps.add(new Step("empty hand", null, 10, mc -> {
+            mc.options.setCameraType(CameraType.FIRST_PERSON);
+            hold(mc, ItemStack.EMPTY);
+        }));
         steps.add(new Step("hud", "17_hud_day", 40, mc -> {
             mc.options.hideGui = false;
             camera(-5, 2.6, 22.5, -5, 0.8, 16).run(mc);
@@ -388,6 +408,10 @@ public final class ClientSmokeTest {
             }
             NetworkHooks.openScreen(player, provider, pos);
         });
+    }
+
+    private static void hold(Minecraft mc, ItemStack stack) {
+        onServer(mc, (server, level, player) -> player.setItemInHand(InteractionHand.MAIN_HAND, stack.copy()));
     }
 
     private static void time(Minecraft mc, long dayTime) {

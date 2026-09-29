@@ -131,6 +131,28 @@ def merged_texture_keys(doc: dict, seen: set[str] | None = None) -> set[str]:
     return keys
 
 
+SEPARATE_TRANSFORM_VIEWS = {"none", "thirdperson_lefthand", "thirdperson_righthand", "firstperson_lefthand",
+                            "firstperson_righthand", "head", "gui", "ground", "fixed"}
+
+
+def check_separate_transforms(name: str, doc: dict) -> None:
+    """A `forge:separate_transforms` item: a base model plus one model per way of holding or showing the item."""
+    entries = {"base": doc.get("base")}
+    perspectives = doc.get("perspectives", {})
+    if not isinstance(perspectives, dict) or not perspectives:
+        err(f"{name}: separate_transforms needs a perspectives object")
+        perspectives = {}
+    for view, entry in perspectives.items():
+        if view not in SEPARATE_TRANSFORM_VIEWS:
+            err(f"{name}: unknown perspective {view}")
+        entries[view] = entry
+    for view, entry in entries.items():
+        parent = entry.get("parent") if isinstance(entry, dict) else None
+        target = model_path(parent) if parent else None
+        if target is None or not target.exists():
+            err(f"{name}: {view} must be a parent pointing at an existing selarium model, got {parent}")
+
+
 def check_models(docs: dict[Path, object]) -> set[str]:
     used_textures: set[str] = set()
     count = 0
@@ -139,6 +161,9 @@ def check_models(docs: dict[Path, object]) -> set[str]:
             continue
         count += 1
         name = rel(path)
+        if doc.get("loader") == "forge:separate_transforms":
+            check_separate_transforms(name, doc)
+            continue
         parent = doc.get("parent")
         if parent:
             target = model_path(parent)

@@ -219,6 +219,38 @@ window.renderSheet = async (specs, cell, cols, view) => {
   }
   return sheet.toDataURL('image/png');
 };
+// First-person hand view: what the player sees when the item is held (resting pose, no swing), 70 degree vertical FOV.
+window.renderHand = async (modelId, opts = {}) => {
+  const W = opts.width ?? 640, H = opts.height ?? 360;
+  const canvas = document.getElementById('gl');
+  canvas.width = W; canvas.height = H;
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, alpha: true, preserveDrawingBuffer: true });
+  renderer.setSize(W, H, false);
+  renderer.setClearColor(0x7f9fbf, 1);
+  const camera = new THREE.PerspectiveCamera(opts.fov ?? 70, W / H, 0.05, 100);
+  const scene = new THREE.Scene();
+  const { group, display } = await buildModel(modelId);
+  const left = opts.hand === 'left';
+  const d = opts.display ?? (display && display[`firstperson_${left ? 'left' : 'right'}hand`]) ?? { rotation: [0, 0, 0], translation: [0, 0, 0], scale: [1, 1, 1] };
+  const side = left ? -1 : 1;
+  const rad = THREE.MathUtils.degToRad;
+  const root = new THREE.Group();
+  root.position.set(side * 0.56, -0.52, -0.72);
+  const disp = new THREE.Group();
+  disp.position.set(side * (d.translation?.[0] ?? 0) / 16, (d.translation?.[1] ?? 0) / 16, (d.translation?.[2] ?? 0) / 16);
+  disp.rotation.order = 'XYZ';
+  const r = d.rotation ?? [0, 0, 0];
+  disp.rotation.set(rad(r[0]), rad(left ? -r[1] : r[1]), rad(left ? -r[2] : r[2]));
+  const sc = d.scale ?? [1, 1, 1];
+  disp.scale.set(sc[0], sc[1], sc[2]);
+  group.scale.setScalar(1 / 16);
+  disp.add(group);
+  root.add(disp);
+  scene.add(root);
+  renderer.render(scene, camera);
+  return canvas.toDataURL('image/png');
+};
+
 window.previewReady = true;
 </script>
 </body>

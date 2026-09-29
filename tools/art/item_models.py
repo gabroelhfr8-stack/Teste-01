@@ -1,4 +1,4 @@
-"""3D item models: books, scrolls, and plain sprite / block item definitions."""
+"""Item models: books (closed, and open in the hands), flat scroll sprites, and plain sprite / block item definitions."""
 from __future__ import annotations
 
 import json
@@ -11,11 +11,20 @@ BOOK_DISPLAY = {
     "ground": {"rotation": [0, 0, 0], "translation": [0, 2, 0], "scale": [0.5, 0.5, 0.5]},
     "fixed": {"rotation": [0, 0, 0], "translation": [0, 0, 0], "scale": [0.75, 0.75, 0.75]},
     "head": {"rotation": [0, 180, 0], "translation": [0, 13, 7], "scale": [1, 1, 1]},
-    "thirdperson_righthand": {"rotation": [0, -30, 0], "translation": [0, 3, 1], "scale": [0.55, 0.55, 0.55]},
-    "thirdperson_lefthand": {"rotation": [0, -30, 0], "translation": [0, 3, 1], "scale": [0.55, 0.55, 0.55]},
-    "firstperson_righthand": {"rotation": [0, 20, 0], "translation": [-1, 3, 1], "scale": [0.68, 0.68, 0.68]},
-    "firstperson_lefthand": {"rotation": [0, 20, 0], "translation": [1, 3, 1], "scale": [0.68, 0.68, 0.68]},
 }
+
+# In the hands the book is open, pages towards the reader. Left and right use the same numbers: the game mirrors the
+# left hand itself. In third person the hand's frame has +Y pointing forward and +Z up, so the book lies like a tray
+# with its pages up and is tilted back a little towards the reader's face; in first person the camera looks down -Z,
+# so the pages face it and the top of the book leans away.
+OPEN_BOOK_DISPLAY = {
+    "thirdperson_righthand": {"rotation": [40, 0, 0], "translation": [0, 5, 3], "scale": [0.6, 0.6, 0.6]},
+    "thirdperson_lefthand": {"rotation": [40, 0, 0], "translation": [0, 5, 3], "scale": [0.6, 0.6, 0.6]},
+    "firstperson_righthand": {"rotation": [-30, -12, 0], "translation": [-2, 7, 0], "scale": [0.4, 0.4, 0.4]},
+    "firstperson_lefthand": {"rotation": [-30, -12, 0], "translation": [-2, 7, 0], "scale": [0.4, 0.4, 0.4]},
+}
+
+PERSPECTIVES = ("thirdperson_lefthand", "thirdperson_righthand", "firstperson_lefthand", "firstperson_righthand")
 
 
 def book(cover_tex: str, gem_tex: str = "block/crystal_cyan") -> Model:
@@ -37,30 +46,33 @@ def book(cover_tex: str, gem_tex: str = "block/crystal_cyan") -> Model:
     return m
 
 
-def scroll(ribbon_tex: str | None, seal: bool) -> Model:
+def open_book(cover_tex: str, pages_tex: str) -> Model:
+    """The book held open, pages facing +Z (the reader): two boards and two stacks of pages fanned out from the spine."""
     m = Model({
-        "parch": tex_ns("block/parchment"), "wood": tex_ns("block/moon_wood_dark"), "gold": tex_ns("block/gilded_trim"),
-        "seal": tex_ns("item/scroll_seal"),
-        **({"ribbon": tex_ns(ribbon_tex)} if ribbon_tex else {}),
-    }, particle="parch", display=BOOK_DISPLAY)
-    m.box(3.2, 3, 7.5, 12.8, 13, 8.5, "parch", name="sheet")
-    m.octagon(14, 8, 2.0, 14.0, 1.5, "parch", axis="x", name="roll_top")
-    m.octagon(2, 8, 2.0, 14.0, 1.5, "parch", axis="x", name="roll_bottom")
-    for x0 in (1.0, 14.0):
-        m.box(x0, 12.2, 7.2, x0 + 1.0, 15.8, 8.8, "wood", name="knob_top")
-        m.box(x0, 0.2, 7.2, x0 + 1.0, 3.8, 8.8, "wood", name="knob_bottom")
-    if ribbon_tex:
-        m.box(3.0, 6.0, 7.3, 13.0, 7.6, 8.7, "ribbon", name="ribbon")
-    if seal:
-        m.box(5.9, 3.6, 8.6, 10.1, 7.8, 9.1, {"north": "seal", "south": "seal", "up": "seal", "down": "seal", "east": "seal", "west": "seal"},
-              uv={"north": [0, 0, 16, 16], "south": [0, 0, 16, 16]}, name="seal")
-        # tintindex 0 on every seal face so the client can colour it per ward
-        for face in m.elements[-1]["faces"].values():
-            face["tintindex"] = 0
-        m.box(5.9, 3.6, 6.9, 10.1, 7.8, 7.4, {"north": "seal", "south": "seal", "up": "seal", "down": "seal", "east": "seal", "west": "seal"},
-              uv={"north": [0, 0, 16, 16], "south": [0, 0, 16, 16]}, name="seal_back")
-        for face in m.elements[-1]["faces"].values():
-            face["tintindex"] = 0
+        "cover": tex_ns(cover_tex), "spine": tex_ns("item/book_spine"), "edge": tex_ns("block/pages_side"),
+        "page": tex_ns(pages_tex), "gold": tex_ns("block/gilded_trim"), "ribbon": tex_ns("item/ribbon_gold"),
+    }, particle="cover", display=OPEN_BOOK_DISPLAY)
+
+    def half(side: int) -> None:
+        # side +1 is the reader's right half; the left half is its mirror image about the spine (x = 8)
+        def span(x0: float, x1: float) -> tuple[float, float]:
+            return 8 + side * (x0 - 8), 8 + side * (x1 - 8)
+
+        rot = ("y", -22.5 * side, (8, 8, 8))
+        a, b = span(8.0, 15.0)
+        m.box(a, 1, 7.4, b, 15, 8.0, {"north": "cover", "south": "spine", "up": "spine", "down": "spine", "east": "spine", "west": "spine"},
+              rot=rot, name="board")
+        a, b = span(8.3, 14.5)
+        m.box(a, 1.6, 8.0, b, 14.4, 9.3, {"south": "page", "up": "edge", "down": "edge", "east": "edge", "west": "edge"},
+              rot=rot, name="pages")
+        for y0 in (0.7, 13.7):
+            a, b = span(13.7, 15.2)
+            m.box(a, y0, 7.2, b, y0 + 1.6, 8.2, "gold", rot=rot, name="corner")
+
+    half(1)
+    half(-1)
+    m.box(7.6, 1, 7.5, 8.4, 15, 9.0, "spine", name="spine")
+    m.box(7.3, -1.4, 8.6, 8.7, 2.0, 8.9, "ribbon", name="bookmark")
     return m
 
 
@@ -75,11 +87,23 @@ def block_item(block: str) -> dict:
 def build_all(assets: Path):
     out = assets / "models" / "item"
     out.mkdir(parents=True, exist_ok=True)
-    book("item/codex_cover").save(out / "selarium_codex.json")
-    book("item/grimoire_cover").save(out / "warding_grimoire.json")
-    scroll(None, False).save(out / "empty_scroll.json")
-    scroll("item/ribbon_violet", True).save(out / "ward_scroll.json")
-    scroll("item/ribbon_cyan", False).save(out / "attunement_scroll.json")
+    for name, cover, pages in (("selarium_codex", "item/codex_cover", "item/book_pages_codex"),
+                               ("warding_grimoire", "item/grimoire_cover", "item/book_pages_grimoire")):
+        book(cover).save(out / f"{name}_closed.json")
+        open_book(cover, pages).save(out / f"{name}_open.json")
+        # closed on the ground, in the inventory and in frames; open in the hands
+        composite = {
+            "loader": "forge:separate_transforms",
+            "base": {"parent": tex_ns(f"item/{name}_closed")},
+            "perspectives": {view: {"parent": tex_ns(f"item/{name}_open")} for view in PERSPECTIVES},
+        }
+        (out / f"{name}.json").write_text(json.dumps(composite, indent=2) + "\n", encoding="utf-8")
+    # scrolls are flat sprites; the wax seal of a ward scroll is a second layer tinted with the ward's colour
+    for name in ("empty_scroll", "attunement_scroll"):
+        (out / f"{name}.json").write_text(json.dumps(generated(f"item/{name}"), indent=2) + "\n", encoding="utf-8")
+    ward_scroll = generated("item/ward_scroll")
+    ward_scroll["textures"]["layer1"] = tex_ns("item/ward_scroll_seal")
+    (out / "ward_scroll.json").write_text(json.dumps(ward_scroll, indent=2) + "\n", encoding="utf-8")
     (out / "arcane_sigil.json").write_text(json.dumps(generated("item/arcane_sigil"), indent=2) + "\n", encoding="utf-8")
     (out / "arcane_crystal.json").write_text(json.dumps(generated("item/arcane_crystal"), indent=2) + "\n", encoding="utf-8")
     for kind in ("arcane", "aegis", "vital", "focus", "binding", "echo", "density", "warp", "veil", "chrono"):

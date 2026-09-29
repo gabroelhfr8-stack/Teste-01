@@ -1,0 +1,452 @@
+{
+  "textures": {
+    "cover": "selarium:item/grimoire_cover",
+    "spine": "selarium:item/book_spine",
+    "pages": "selarium:block/pages_side",
+    "gold": "selarium:block/gilded_trim",
+    "gem": "selarium:block/crystal_cyan",
+    "ribbon": "selarium:item/ribbon_gold",
+    "particle": "selarium:item/grimoire_cover"
+  },
+  "elements": [
+    {
+      "from": [
+        3,
+        1,
+        9.2
+      ],
+      "to": [
+        13,
+        15,
+        9.8
+      ],
+      "faces": {
+        "down": {
+          "texture": "#spine"
+        },
+        "up": {
+          "texture": "#spine"
+        },
+        "north": {
+          "texture": "#spine"
+        },
+        "south": {
+          "texture": "#spine"
+        },
+        "west": {
+          "texture": "#spine"
+        },
+        "east": {
+          "texture": "#spine"
+        }
+      },
+      "name": "back_cover"
+    },
+    {
+      "from": [
+        3,
+        1,
+        6.2
+      ],
+      "to": [
+        13,
+        15,
+        6.8
+      ],
+      "faces": {
+        "down": {
+          "texture": "#spine"
+        },
+        "up": {
+          "texture": "#spine"
+        },
+        "north": {
+          "texture": "#cover",
+          "uv": [
+            16,
+            0,
+            0,
+            16
+          ]
+        },
+        "south": {
+          "texture": "#spine"
+        },
+        "west": {
+          "texture": "#spine"
+        },
+        "east": {
+          "texture": "#spine"
+        }
+      },
+      "name": "front_cover"
+    },
+    {
+      "from": [
+        3,
+        1,
+        6.2
+      ],
+      "to": [
+        3.9,
+        15,
+        9.8
+      ],
+      "faces": {
+        "down": {
+          "texture": "#spine"
+        },
+        "up": {
+          "texture": "#spine"
+        },
+        "north": {
+          "texture": "#spine"
+        },
+        "south": {
+          "texture": "#spine"
+        },
+        "west": {
+          "texture": "#spine"
+        },
+        "east": {
+          "texture": "#spine"
+        }
+      },
+      "name": "spine"
+    },
+    {
+      "from": [
+        3.9,
+        1.6,
+        6.8
+      ],
+      "to": [
+        12.6,
+        14.4,
+        9.2
+      ],
+      "faces": {
+        "down": {
+          "texture": "#pages"
+        },
+        "up": {
+          "texture": "#pages"
+        },
+        "north": {
+          "texture": "#pages"
+        },
+        "south": {
+          "texture": "#pages"
+        },
+        "west": {
+          "texture": "#pages"
+        },
+        "east": {
+          "texture": "#pages"
+        }
+      },
+      "name": "pages"
+    },
+    {
+      "from": [
+        12,
+        1,
+        6
+      ],
+      "to": [
+        13,
+        2.4,
+        6.8
+      ],
+      "faces": {
+        "down": {
+          "texture": "#gold"
+        },
+        "up": {
+          "texture": "#gold"
+        },
+        "north": {
+          "texture": "#gold"
+        },
+        "south": {
+          "texture": "#gold"
+        },
+        "west": {
+          "texture": "#gold"
+        },
+        "east": {
+          "texture": "#gold"
+        }
+      },
+      "name": "corner"
+    },
+    {
+      "from": [
+        12,
+        13.6,
+        6
+      ],
+      "to": [
+        13,
+        15,
+        6.8
+      ],
+      "faces": {
+        "down": {
+          "texture": "#gold"
+        },
+        "up": {
+          "texture": "#gold"
+        },
+        "north": {
+          "texture": "#gold"
+        },
+        "south": {
+          "texture": "#gold"
+        },
+        "west": {
+          "texture": "#gold"
+        },
+        "east": {
+          "texture": "#gold"
+        }
+      },
+      "name": "corner"
+    },
+    {
+      "from": [
+        3,
+        1,
+        6
+      ],
+      "to": [
+        4,
+        2.4,
+        6.8
+      ],
+      "faces": {
+        "down": {
+          "texture": "#gold"
+        },
+        "up": {
+          "texture": "#gold"
+        },
+        "north": {
+          "texture": "#gold"
+        },
+        "south": {
+          "texture": "#gold"
+        },
+        "west": {
+          "texture": "#gold"
+        },
+        "east": {
+          "texture": "#gold"
+        }
+      },
+      "name": "corner"
+    },
+    {
+      "from": [
+        3,
+        13.6,
+        6
+      ],
+      "to": [
+        4,
+        15,
+        6.8
+      ],
+      "faces": {
+        "down": {
+          "texture": "#gold"
+        },
+        "up": {
+          "texture": "#gold"
+        },
+        "north": {
+          "texture": "#gold"
+        },
+        "south": {
+          "texture": "#gold"
+        },
+        "west": {
+          "texture": "#gold"
+        },
+        "east": {
+          "texture": "#gold"
+        }
+      },
+      "name": "corner"
+    },
+    {
+      "from": [
+        12.2,
+        6.4,
+        5.7
+      ],
+      "to": [
+        13.2,
+        9.6,
+        6
+      ],
+      "faces": {
+        "down": {
+          "texture": "#gold"
+        },
+        "up": {
+          "texture": "#gold"
+        },
+        "north": {
+          "texture": "#gold"
+        },
+        "south": {
+          "texture": "#gold"
+        },
+        "west": {
+          "texture": "#gold"
+        },
+        "east": {
+          "texture": "#gold"
+        }
+      },
+      "name": "clasp"
+    },
+    {
+      "from": [
+        12.3,
+        7.2,
+        5.3
+      ],
+      "to": [
+        13.1,
+        8.8,
+        5.75
+      ],
+      "faces": {
+        "down": {
+          "texture": "#gem"
+        },
+        "up": {
+          "texture": "#gem"
+        },
+        "north": {
+          "texture": "#gem"
+        },
+        "south": {
+          "texture": "#gem"
+        },
+        "west": {
+          "texture": "#gem"
+        },
+        "east": {
+          "texture": "#gem"
+        }
+      },
+      "name": "clasp_gem"
+    },
+    {
+      "from": [
+        7,
+        -0.6,
+        7.4
+      ],
+      "to": [
+        8,
+        1.2,
+        8.6
+      ],
+      "faces": {
+        "down": {
+          "texture": "#ribbon"
+        },
+        "up": {
+          "texture": "#ribbon"
+        },
+        "north": {
+          "texture": "#ribbon"
+        },
+        "south": {
+          "texture": "#ribbon"
+        },
+        "west": {
+          "texture": "#ribbon"
+        },
+        "east": {
+          "texture": "#ribbon"
+        }
+      },
+      "name": "bookmark"
+    }
+  ],
+  "display": {
+    "gui": {
+      "rotation": [
+        22,
+        205,
+        0
+      ],
+      "translation": [
+        0,
+        -0.5,
+        0
+      ],
+      "scale": [
+        0.95,
+        0.95,
+        0.95
+      ]
+    },
+    "ground": {
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "translation": [
+        0,
+        2,
+        0
+      ],
+      "scale": [
+        0.5,
+        0.5,
+        0.5
+      ]
+    },
+    "fixed": {
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "translation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        0.75,
+        0.75,
+        0.75
+      ]
+    },
+    "head": {
+      "rotation": [
+        0,
+        180,
+        0
+      ],
+      "translation": [
+        0,
+        13,
+        7
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    }
+  }
+}

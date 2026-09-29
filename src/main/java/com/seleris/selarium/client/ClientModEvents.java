@@ -63,10 +63,10 @@ public final class ClientModEvents {
         event.registerBlockEntityRenderer(SelariumBlockEntities.MANA_TANK.get(), ManaTankRenderer::new);
     }
 
-    /** The wax seal of a Ward Scroll takes the colour of the ward it carries. */
+    /** The wax seal (layer 1 of the flat sprite) of a Ward Scroll takes the colour of the ward it carries. */
     @SubscribeEvent
     public static void onRegisterItemColors(RegisterColorHandlersEvent.Item event) {
-        event.register((stack, tintIndex) -> tintIndex == 0
+        event.register((stack, tintIndex) -> tintIndex == 1
                         ? 0xFF000000 | WardStyles.primary(ScrollData.ward(stack))
                         : 0xFFFFFFFF,
                 SelariumItems.WARD_SCROLL.get());

@@ -75,10 +75,17 @@ public class RingParticle extends TextureSheetParticle {
             for (int[] cell : VoxelField.ring(radius - trail)) {
                 float x0 = baseX + cell[0];
                 float z0 = baseZ + cell[1];
-                consumer.vertex(x0, py, z0).uv(u0, v0).color(this.rCol, this.gCol, this.bCol, a).uv2(FULL_BRIGHT).endVertex();
-                consumer.vertex(x0, py, z0 + 1.0F).uv(u0, v1).color(this.rCol, this.gCol, this.bCol, a).uv2(FULL_BRIGHT).endVertex();
-                consumer.vertex(x0 + 1.0F, py, z0 + 1.0F).uv(u1, v1).color(this.rCol, this.gCol, this.bCol, a).uv2(FULL_BRIGHT).endVertex();
-                consumer.vertex(x0 + 1.0F, py, z0).uv(u1, v0).color(this.rCol, this.gCol, this.bCol, a).uv2(FULL_BRIGHT).endVertex();
+                // tiles right under the camera fade out instead of filling the view
+                float cx = x0 + 0.5F, cz = z0 + 0.5F;
+                float reach = Mth.clamp((Mth.sqrt(cx * cx + py * py + cz * cz) - 1.0F) / 2.0F, 0.0F, 1.0F);
+                float alpha = a * reach;
+                if (alpha <= 0.01F) {
+                    continue;
+                }
+                consumer.vertex(x0, py, z0).uv(u0, v0).color(this.rCol, this.gCol, this.bCol, alpha).uv2(FULL_BRIGHT).endVertex();
+                consumer.vertex(x0, py, z0 + 1.0F).uv(u0, v1).color(this.rCol, this.gCol, this.bCol, alpha).uv2(FULL_BRIGHT).endVertex();
+                consumer.vertex(x0 + 1.0F, py, z0 + 1.0F).uv(u1, v1).color(this.rCol, this.gCol, this.bCol, alpha).uv2(FULL_BRIGHT).endVertex();
+                consumer.vertex(x0 + 1.0F, py, z0).uv(u1, v0).color(this.rCol, this.gCol, this.bCol, alpha).uv2(FULL_BRIGHT).endVertex();
             }
         }
     }
