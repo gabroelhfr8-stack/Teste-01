@@ -6,12 +6,15 @@ import com.seleris.selarium.Selarium;
 import com.seleris.selarium.block.ArcaneGrinderBlock;
 import com.seleris.selarium.blockentity.ArcaneSigilBlockEntity;
 import com.seleris.selarium.blockentity.ManaTankBlockEntity;
+import com.seleris.selarium.client.SelariumClientHooks;
 import com.seleris.selarium.dust.DustDefinition;
 import com.seleris.selarium.dust.DustPurity;
 import com.seleris.selarium.dust.DustType;
+import com.seleris.selarium.grimoire.WardingRuleSet;
 import com.seleris.selarium.registry.SelariumBlocks;
 import com.seleris.selarium.ward.WardDefinition;
 import com.seleris.selarium.ward.WardDefinitions;
+import com.seleris.selarium.ward.WardProjectionSavedData;
 import com.seleris.selarium.ward.WardRequirement;
 import com.seleris.selarium.ward.WardType;
 import net.minecraft.client.Minecraft;
@@ -23,6 +26,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Difficulty;
+import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
@@ -42,6 +46,8 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.network.NetworkHooks;
+import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;
 
 import java.io.IOException;
@@ -101,10 +107,10 @@ public final class ClientSmokeTest {
                 }
                 return;
             }
-            if (mc.level == null || mc.player == null || mc.screen != null || mc.getSingleplayerServer() == null) {
+            if (mc.level == null || mc.player == null || mc.getSingleplayerServer() == null) {
                 return;
             }
-            if (step < 0 && !mc.levelRenderer.hasRenderedAllChunks()) {
+            if (step < 0 && (mc.screen != null || !mc.levelRenderer.hasRenderedAllChunks())) {
                 return;
             }
             if (settle > 0) {
@@ -187,6 +193,7 @@ public final class ClientSmokeTest {
         steps.add(new Step("wards overview (night)", "10_overview_night", 60, camera(0, 22, -46, 0, 1, 2)));
         steps.add(new Step("workshop (night)", "11_workshop_night", 60, camera(-3, 8, 32, -3, 1, 16)));
         steps.add(new Step("inactive sigil (night)", "12_inactive_sigil_night", 40, camera(-3, 1.9, 13.6, -3, 0, 11)));
+        steps.add(new Step("scroll projection (night)", "18_projection_night", 60, camera(23, 3.5, 22, 30, 1.5, 14)));
         steps.add(new Step("day returns", null, 20, mc -> time(mc, NOON)));
         steps.add(new Step("workshop (day)", "13_workshop_day", 80, camera(-3, 8, 32, -3, 1, 16)));
         steps.add(new Step("inactive sigil (day)", "14_inactive_sigil_day", 40, camera(-3, 1.9, 13.6, -3, 0, 11)));
@@ -196,6 +203,27 @@ public final class ClientSmokeTest {
             mc.options.hideGui = false;
             camera(-5, 2.6, 22.5, -5, 0.8, 16).run(mc);
         }));
+
+        // screens
+        steps.add(new Step("codex", "20_gui_codex_start", 20, mc -> SelariumClientHooks.openCodex()));
+        steps.add(new Step("codex dusts", "21_gui_codex_dusts", 6, mc -> pressRight(mc, 4)));
+        steps.add(new Step("codex sigils", "22_gui_codex_sigils", 6, mc -> pressRight(mc, 1)));
+        steps.add(new Step("codex wards", "23_gui_codex_wards", 6, mc -> pressRight(mc, 4)));
+        steps.add(new Step("grimoire", "24_gui_grimoire", 20, mc ->
+                SelariumClientHooks.openWardingGrimoire(WardingRuleSet.defaults(mc.player.getUUID()))));
+        steps.add(new Step("grinder", "25_gui_grinder", 20, mc -> {
+            mc.player.closeContainer();
+            openMenu(mc, -10, 16);
+        }));
+        steps.add(new Step("inscription bench", "26_gui_inscription", 20, mc -> {
+            mc.player.closeContainer();
+            openMenu(mc, 3, 16);
+        }));
+        steps.add(new Step("sigil", "27_gui_sigil", 20, mc -> {
+            mc.player.closeContainer();
+            openMenu(mc, -20, 0);
+        }));
+        steps.add(new Step("close", null, 10, mc -> mc.player.closeContainer()));
         return steps;
     }
 
@@ -208,6 +236,22 @@ public final class ClientSmokeTest {
             float yaw = (float) Math.toDegrees(Math.atan2(-dx, dz));
             float pitch = (float) -Math.toDegrees(Math.atan2(dyy, Math.sqrt(dx * dx + dz * dz)));
             player.teleportTo(level, x, y - EYE_HEIGHT, z, yaw, pitch);
+        });
+    }
+
+    private static void pressRight(Minecraft mc, int times) {
+        for (int i = 0; i < times; i++) {
+            mc.screen.keyPressed(GLFW.GLFW_KEY_RIGHT, 0, 0);
+        }
+    }
+
+    private static void openMenu(Minecraft mc, int x, int z) {
+        onServer(mc, (server, level, player) -> {
+            BlockPos pos = new BlockPos(x, base, z);
+            if (!(level.getBlockEntity(pos) instanceof MenuProvider provider)) {
+                throw new IllegalStateException("no menu provider at " + pos);
+            }
+            NetworkHooks.openScreen(player, provider, pos);
         });
     }
 
@@ -247,6 +291,10 @@ public final class ClientSmokeTest {
         placeSigil(level, new BlockPos(-20, base, -26), player, WardType.REJUVENATION);
         placeSigil(level, new BlockPos(0, base, -26), player, WardType.WHISPERING);
         placeInactiveSigil(level, new BlockPos(-3, base, 11), player);
+        // a fixed ward field cast from a scroll: no block entity, drawn by the level-stage renderer
+        var cast = WardProjectionSavedData.get(level).cast(player, WardDefinitions.get(WardType.STASIS).orElseThrow(),
+                new BlockPos(30, base, 14), false);
+        LOGGER.info("SMOKE projection cast: {}", cast);
         Creeper creeper = EntityType.CREEPER.create(level);
         if (creeper != null) {
             creeper.moveTo(3.5D, base, 1.5D, 200.0F, 0.0F);

@@ -35,7 +35,7 @@ levantar muralhas temporárias…
 4. Coloque um **Tanque de Mana** ao lado (ou use a sua própria mana) para pagar a manutenção.
 5. Ative o sigilo e veja o campo surgir. Guarde a proteção num **pergaminho** na Bancada de Inscrição.
 
-O **Códex Selariano** dentro do jogo explica cada sistema.
+O **Codex do Selarium** dentro do jogo explica cada sistema.
 
 ## Compilar e testar
 
@@ -46,13 +46,15 @@ Requisitos: **JDK 17**. O projeto usa ForgeGradle 6 / Forge 47.4.20.
 ./gradlew runClient          # cliente de desenvolvimento
 ./gradlew runServer          # servidor dedicado
 ./gradlew runGameTestServer  # testes headless (registries, receitas, worldgen, mana, proteções)
+./gradlew runClient -Psmoketest  # sessão de cliente roteirizada que tira capturas de tela (precisa de OpenGL)
 ```
 
 No Windows use `gradlew.bat`. Configurações geradas: `config/selarium-common.toml` (jogabilidade, servidor) e
 `config/selarium-client.toml` (efeitos visuais, HUD).
 
-O GitHub Actions ([`.github/workflows/build.yml`](.github/workflows/build.yml)) valida os assets, compila, empacota e
-roda os GameTests a cada push.
+O GitHub Actions ([`.github/workflows/build.yml`](.github/workflows/build.yml)) valida os assets, compila, empacota,
+roda os GameTests e um **teste de fumaça do cliente** (o jogo de verdade, com OpenGL por software) a cada push. Este
+último cria um mundo, monta uma vitrine com sigilos ativos e máquinas, abre as telas e anexa as capturas ao run.
 
 ## Estrutura
 
@@ -80,6 +82,7 @@ docs/                arquitetura, identidade visual, balanceamento, checklist de
 | `node tools/preview/render.cjs …` | Renderiza modelos JSON num PNG (Chromium + three.js) para revisar o visual sem abrir o jogo. |
 | `python3 tools/gen_docs.py` | Regenera [docs/WARDS.md](docs/WARDS.md) a partir do código. |
 | `python3 tools/check_server_log.py` | Falha se o log do servidor tiver erros relevantes (usado no CI). |
+| `python3 tools/dump_smoke.py run` | Relata o teste de fumaça do cliente e imprime as capturas (base64) no log do CI. |
 
 ## Licença
 

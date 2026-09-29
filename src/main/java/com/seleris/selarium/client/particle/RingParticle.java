@@ -10,6 +10,7 @@ import net.minecraft.client.particle.ParticleRenderType;
 import net.minecraft.client.particle.SpriteSet;
 import net.minecraft.client.particle.TextureSheetParticle;
 import net.minecraft.util.Mth;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 /** A flat ring lying on the ground that sweeps outwards and fades: the visible "pulse" of a ward cycle. */
@@ -43,6 +44,9 @@ public class RingParticle extends TextureSheetParticle {
         float life = this.age / (float) this.lifetime;
         float ease = 1.0F - (1.0F - life) * (1.0F - life);
         this.quadSize = Math.max(0.15F, this.maxRadius * ease);
+        // the frustum test uses the bounding box, which must span the whole ring or it vanishes when its centre is off-screen
+        this.setBoundingBox(new AABB(this.x - this.quadSize, this.y - 0.1D, this.z - this.quadSize,
+                this.x + this.quadSize, this.y + 0.1D, this.z + this.quadSize));
         this.alpha = 0.85F * Mth.clamp(life / 0.12F, 0.0F, 1.0F) * Mth.clamp((1.0F - life) / 0.7F, 0.0F, 1.0F);
     }
 

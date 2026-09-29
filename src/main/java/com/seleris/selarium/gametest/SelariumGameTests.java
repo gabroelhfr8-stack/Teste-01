@@ -14,6 +14,7 @@ import com.seleris.selarium.ward.WardContext;
 import com.seleris.selarium.ward.WardDefinition;
 import com.seleris.selarium.ward.WardDefinitions;
 import com.seleris.selarium.ward.WardManager;
+import com.seleris.selarium.ward.WardRequirement;
 import com.seleris.selarium.ward.WardStyles;
 import com.seleris.selarium.ward.effect.WardEffects;
 import com.seleris.selarium.ward.WardType;
@@ -23,7 +24,9 @@ import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.storage.loot.LootTable;
@@ -33,6 +36,7 @@ import net.minecraftforge.gametest.PrefixGameTestTemplate;
 import net.minecraftforge.registries.RegistryObject;
 
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * Headless server tests, run in CI with {@code ./gradlew runGameTestServer}.
@@ -174,6 +178,59 @@ public final class SelariumGameTests {
         helper.assertTrue(restored.getTotalComponents() == 2, "component count should survive, got " + restored.getTotalComponents());
         helper.assertTrue(restored.hasComponent(DustType.AEGIS, DustPurity.REFINED), "refined aegis should survive");
         helper.assertTrue(restored.getInternalManaBuffer() == 42, "internal mana should survive, got " + restored.getInternalManaBuffer());
+        helper.succeed();
+    }
+
+    /**
+     * Runs one paid cycle of every ward next to hostile and passive mobs, an item, an arrow, a furnace, a copper block and
+     * a crop, so each effect's real code path executes on a live server. Failures show up as exceptions.
+     */
+    @GameTest(template = EMPTY, timeoutTicks = 200)
+    public static void everyWardSurvivesACycleWithTargets(GameTestHelper helper) {
+        BlockPos floor = new BlockPos(3, 0, 3);
+        BlockPos sigilPos = floor.above();
+        for (int x = 0; x <= 6; x++) {
+            for (int z = 0; z <= 6; z++) {
+                helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
+            }
+        }
+        helper.setBlock(new BlockPos(1, 0, 1), Blocks.FARMLAND);
+        helper.setBlock(new BlockPos(1, 1, 1), Blocks.WHEAT);
+        helper.setBlock(new BlockPos(2, 1, 1), Blocks.FURNACE);
+        helper.setBlock(new BlockPos(4, 1, 1), Blocks.COPPER_BLOCK);
+        helper.spawn(EntityType.ZOMBIE, 5, 1, 3);
+        helper.spawn(EntityType.SKELETON, 5, 1, 5);
+        helper.spawn(EntityType.SHEEP, 1, 1, 3);
+        helper.spawn(EntityType.COW, 1, 1, 5);
+        helper.spawn(EntityType.ARROW, 2, 3, 2);
+        helper.spawnItem(Items.COPPER_INGOT, 4.5F, 1.0F, 4.5F);
+
+        BlockPos absolute = helper.absolutePos(sigilPos);
+        for (WardType type : WardType.values()) {
+            if (type == WardType.NONE) {
+                continue;
+            }
+            WardDefinition definition = WardDefinitions.get(type).orElseThrow();
+            try {
+                helper.setBlock(sigilPos, SelariumBlocks.ARCANE_SIGIL.get());
+                ArcaneSigilBlockEntity sigil = requireBlockEntity(helper, sigilPos, ArcaneSigilBlockEntity.class);
+                sigil.setOwner(UUID.randomUUID());
+                for (WardRequirement requirement : definition.requirements()) {
+                    for (int i = 0; i < requirement.count(); i++) {
+                        sigil.addComponent(new DustDefinition(requirement.type(), requirement.minimumPurity()), false);
+                    }
+                }
+                sigil.addInternalMana(5000, 5000);
+                sigil.startWard(definition);
+                for (int cycle = 0; cycle < 3; cycle++) {
+                    WardManager.tick(new WardContext(helper.getLevel(), absolute, sigil.getBlockState(), sigil));
+                }
+                helper.assertTrue(sigil.getWardType() == type, "sigil should still hold " + type);
+                helper.setBlock(sigilPos, Blocks.AIR);
+            } catch (RuntimeException exception) {
+                helper.fail(type + " threw " + exception);
+            }
+        }
         helper.succeed();
     }
 }
