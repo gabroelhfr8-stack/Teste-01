@@ -1,0 +1,18 @@
+{
+  "replace": false,
+  "values": [
+    "selarium:mana_tank",
+    "selarium:arcane_grinder",
+    "selarium:inscription_bench",
+    "selarium:arcane_geode_stone",
+    "selarium:polished_arcane_geode_stone",
+    "selarium:arcane_crystal_block",
+    "selarium:arcane_block",
+    "selarium:phasing_block",
+    "selarium:budding_arcane_crystal",
+    "selarium:small_arcane_crystal_bud",
+    "selarium:medium_arcane_crystal_bud",
+    "selarium:large_arcane_crystal_bud",
+    "selarium:arcane_crystal_cluster"
+  ]
+}

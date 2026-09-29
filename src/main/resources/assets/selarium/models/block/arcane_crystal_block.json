@@ -1,0 +1,7 @@
+{
+  "ambientocclusion": false,
+  "parent": "block/cube_all",
+  "textures": {
+    "all": "selarium:block/arcane_crystal_block"
+  }
+}

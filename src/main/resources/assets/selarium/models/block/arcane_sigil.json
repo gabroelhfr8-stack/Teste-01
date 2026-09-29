@@ -1,0 +1,16 @@
+{
+  "parent": "block/block",
+  "textures": {
+    "particle": "selarium:block/arcane_sigil",
+    "sigil": "selarium:block/arcane_sigil"
+  },
+  "elements": [
+    {
+      "from": [0, 0, 0],
+      "to": [16, 1, 16],
+      "faces": {
+        "up": { "texture": "#sigil" }
+      }
+    }
+  ]
+}

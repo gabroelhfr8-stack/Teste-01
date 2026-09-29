@@ -1,0 +1,12 @@
+/.gradle/
+/.gradle-sandbox/
+/build/
+/run/
+/tmp/
+/Mods Teste/
+/out/
+/.idea/
+/.vscode/
+*.iml
+*.ipr
+*.iws

@@ -1,0 +1,14 @@
+{
+  "type": "selarium:arcane_grinding",
+  "input": {
+    "item": "selarium:arcane_dust"
+  },
+  "result": {
+    "item": "selarium:basic_focus_dust",
+    "count": 1
+  },
+  "processingTime": 100,
+  "reagent": {
+    "item": "minecraft:redstone"
+  }
+}

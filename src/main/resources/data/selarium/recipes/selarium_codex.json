@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "minecraft:book"
+    },
+    {
+      "item": "selarium:arcane_dust"
+    }
+  ],
+  "result": {
+    "item": "selarium:selarium_codex",
+    "count": 1
+  }
+}

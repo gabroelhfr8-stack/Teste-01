@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/leaves",
+  "textures": {
+    "all": "selarium:block/flowering_arcane_leaves_v1"
+  }
+}

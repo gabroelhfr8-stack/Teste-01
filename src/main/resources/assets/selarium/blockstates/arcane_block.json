@@ -1,0 +1,5 @@
+{
+  "variants": {
+    "": { "model": "selarium:block/arcane_block" }
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "type": "selarium:arcane_grinding",
+  "input": {
+    "item": "selarium:arcane_crystal"
+  },
+  "result": {
+    "item": "selarium:arcane_dust",
+    "count": 2
+  },
+  "processingTime": 100,
+  "useConfiguredCrystalOutput": true
+}

@@ -1,0 +1,14 @@
+{
+  "type": "selarium:arcane_grinding",
+  "input": {
+    "item": "selarium:basic_density_dust"
+  },
+  "result": {
+    "item": "selarium:refined_density_dust",
+    "count": 1
+  },
+  "processingTime": 220,
+  "reagent": {
+    "item": "minecraft:shulker_shell"
+  }
+}

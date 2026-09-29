@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "selarium:block/mana_tank"
+    },
+    "facing=east": {
+      "model": "selarium:block/mana_tank",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "selarium:block/mana_tank",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "selarium:block/mana_tank",
+      "y": 270
+    }
+  }
+}

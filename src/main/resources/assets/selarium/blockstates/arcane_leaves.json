@@ -1,0 +1,20 @@
+{
+  "multipart": [
+    {
+      "apply": [
+        {
+          "model": "selarium:block/arcane_leaves_v1",
+          "weight": 3
+        },
+        {
+          "model": "selarium:block/arcane_leaves_v2",
+          "weight": 2
+        },
+        {
+          "model": "selarium:block/arcane_leaves_v3",
+          "weight": 2
+        }
+      ]
+    }
+  ]
+}

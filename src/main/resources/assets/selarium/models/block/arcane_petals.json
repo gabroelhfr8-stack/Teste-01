@@ -1,0 +1,21 @@
+{
+  "ambientocclusion": false,
+  "textures": {
+    "particle": "selarium:block/arcane_petals",
+    "petals": "selarium:block/arcane_petals"
+  },
+  "elements": [
+    {
+      "from": [0, 0, 0],
+      "to": [16, 1, 16],
+      "faces": {
+        "up": {
+          "texture": "#petals"
+        },
+        "down": {
+          "texture": "#petals"
+        }
+      }
+    }
+  ]
+}

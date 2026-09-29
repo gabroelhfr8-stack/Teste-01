@@ -1,0 +1,14 @@
+{
+  "type": "selarium:arcane_grinding",
+  "input": {
+    "item": "selarium:arcane_dust"
+  },
+  "result": {
+    "item": "selarium:basic_aegis_dust",
+    "count": 1
+  },
+  "processingTime": 120,
+  "reagent": {
+    "item": "minecraft:iron_ingot"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "type": "selarium:arcane_grinding",
+  "input": {
+    "item": "selarium:basic_binding_dust"
+  },
+  "result": {
+    "item": "selarium:refined_binding_dust",
+    "count": 1
+  },
+  "processingTime": 160,
+  "reagent": {
+    "item": "minecraft:slime_ball"
+  }
+}

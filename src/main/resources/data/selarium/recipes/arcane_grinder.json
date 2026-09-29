@@ -1,0 +1,29 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "GCG",
+    "IAI",
+    "CRC"
+  ],
+  "key": {
+    "G": {
+      "item": "minecraft:glass"
+    },
+    "C": {
+      "item": "minecraft:copper_ingot"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "A": {
+      "item": "minecraft:amethyst_shard"
+    },
+    "R": {
+      "item": "selarium:arcane_crystal"
+    }
+  },
+  "result": {
+    "item": "selarium:arcane_grinder",
+    "count": 1
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "type": "selarium:arcane_grinding",
+  "input": {
+    "item": "selarium:basic_veil_dust"
+  },
+  "result": {
+    "item": "selarium:refined_veil_dust",
+    "count": 1
+  },
+  "processingTime": 240,
+  "reagent": {
+    "item": "minecraft:dragon_breath"
+  }
+}

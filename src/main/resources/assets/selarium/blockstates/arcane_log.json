@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "axis=x": {
+      "model": "selarium:block/arcane_log",
+      "x": 90,
+      "y": 90
+    },
+    "axis=y": {
+      "model": "selarium:block/arcane_log"
+    },
+    "axis=z": {
+      "model": "selarium:block/arcane_log",
+      "x": 90
+    }
+  }
+}

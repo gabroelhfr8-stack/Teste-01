@@ -1,0 +1,6 @@
+{
+  "parent": "block/cube_all",
+  "textures": {
+    "all": "selarium:block/arcane_geode_stone"
+  }
+}

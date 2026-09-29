@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    { "item": "minecraft:paper" },
+    { "item": "minecraft:string" },
+    { "item": "selarium:basic_arcane_dust" }
+  ],
+  "result": { "item": "selarium:empty_scroll" }
+}

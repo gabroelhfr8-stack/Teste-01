@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["CRC", "PAP", "CCC"],
+  "key": {
+    "C": { "item": "minecraft:copper_ingot" },
+    "R": { "item": "selarium:arcane_crystal" },
+    "P": { "item": "selarium:polished_arcane_geode_stone" },
+    "A": { "item": "minecraft:amethyst_shard" }
+  },
+  "result": { "item": "selarium:inscription_bench" }
+}

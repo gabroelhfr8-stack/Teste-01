@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cube_column",
+  "textures": {
+    "end": "selarium:block/arcane_log_top",
+    "side": "selarium:block/arcane_log"
+  }
+}

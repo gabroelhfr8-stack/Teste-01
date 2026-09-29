@@ -1,0 +1,28 @@
+modLoader="javafml"
+loaderVersion="[47,)"
+license="All Rights Reserved"
+issueTrackerURL="https://example.invalid/selarium"
+
+[[mods]]
+modId="selarium"
+version="0.2.0"
+displayName="Selarium"
+authors="Seleris"
+description='''
+An original magic system of sigils, wards, mana, inscription, attunement rituals and bound scrolls.
+'''
+
+[[dependencies.selarium]]
+modId="forge"
+mandatory=true
+versionRange="[47,)"
+ordering="NONE"
+side="BOTH"
+
+[[dependencies.selarium]]
+modId="minecraft"
+mandatory=true
+versionRange="[1.20.1,1.21)"
+ordering="NONE"
+side="BOTH"
+

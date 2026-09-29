@@ -1,0 +1,7 @@
+{
+  "parent": "item/generated",
+  "textures": {
+    "layer0": "selarium:item/arcane_dust"
+  }
+}
+

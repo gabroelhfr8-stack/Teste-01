@@ -1,0 +1,14 @@
+{
+  "type": "selarium:arcane_grinding",
+  "input": {
+    "item": "selarium:basic_chrono_dust"
+  },
+  "result": {
+    "item": "selarium:refined_chrono_dust",
+    "count": 1
+  },
+  "processingTime": 260,
+  "reagent": {
+    "item": "minecraft:nether_star"
+  }
+}

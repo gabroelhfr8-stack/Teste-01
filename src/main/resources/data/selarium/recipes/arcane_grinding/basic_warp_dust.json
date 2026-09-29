@@ -1,0 +1,14 @@
+{
+  "type": "selarium:arcane_grinding",
+  "input": {
+    "item": "selarium:arcane_dust"
+  },
+  "result": {
+    "item": "selarium:basic_warp_dust",
+    "count": 1
+  },
+  "processingTime": 140,
+  "reagent": {
+    "item": "minecraft:ender_pearl"
+  }
+}

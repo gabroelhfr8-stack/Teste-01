@@ -1,0 +1,14 @@
+{
+  "type": "selarium:arcane_grinding",
+  "input": {
+    "item": "selarium:basic_vital_dust"
+  },
+  "result": {
+    "item": "selarium:refined_vital_dust",
+    "count": 1
+  },
+  "processingTime": 200,
+  "reagent": {
+    "item": "minecraft:golden_apple"
+  }
+}

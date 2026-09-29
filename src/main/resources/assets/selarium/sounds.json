@@ -1,0 +1,26 @@
+{
+  "block.arcane_crystal.place": {
+    "subtitle": "subtitles.selarium.block.arcane_crystal.place",
+    "sounds": [
+      { "name": "selarium:block/arcane_crystal/place1", "volume": 3.0, "pitch": 1.0 },
+      { "name": "selarium:block/arcane_crystal/place2", "volume": 3.0, "pitch": 1.0 },
+      { "name": "selarium:block/arcane_crystal/place3", "volume": 3.0, "pitch": 1.0 },
+      { "name": "selarium:block/arcane_crystal/place4", "volume": 3.0, "pitch": 1.0 }
+    ]
+  },
+  "block.arcane_crystal.break": {
+    "subtitle": "subtitles.selarium.block.arcane_crystal.break",
+    "sounds": [
+      { "name": "selarium:block/arcane_crystal/break1", "volume": 3.25, "pitch": 1.0 },
+      { "name": "selarium:block/arcane_crystal/break2", "volume": 3.25, "pitch": 1.0 },
+      { "name": "selarium:block/arcane_crystal/break3", "volume": 3.25, "pitch": 1.0 },
+      { "name": "selarium:block/arcane_crystal/break4", "volume": 3.25, "pitch": 1.0 }
+    ]
+  },
+  "block.arcane_crystal.shimmer": {
+    "subtitle": "subtitles.selarium.block.arcane_crystal.shimmer",
+    "sounds": [
+      { "name": "selarium:block/arcane_crystal/shimmer", "volume": 2.5, "pitch": 1.0 }
+    ]
+  }
+}

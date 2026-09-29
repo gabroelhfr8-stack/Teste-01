@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "CCC",
+    "CCC",
+    "CCC"
+  ],
+  "key": {
+    "C": {
+      "item": "selarium:arcane_crystal"
+    }
+  },
+  "result": {
+    "item": "selarium:arcane_block",
+    "count": 1
+  }
+}

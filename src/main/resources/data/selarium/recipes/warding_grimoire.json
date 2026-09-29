@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "minecraft:book"
+    },
+    {
+      "item": "selarium:arcane_dust"
+    },
+    {
+      "item": "selarium:binding_dust"
+    },
+    {
+      "item": "selarium:focus_dust"
+    }
+  ],
+  "result": {
+    "item": "selarium:warding_grimoire",
+    "count": 1
+  }
+}

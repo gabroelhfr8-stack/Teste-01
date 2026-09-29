@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "GG",
+    "GG"
+  ],
+  "key": {
+    "G": {
+      "item": "selarium:arcane_geode_stone"
+    }
+  },
+  "result": {
+    "item": "selarium:polished_arcane_geode_stone",
+    "count": 4
+  }
+}
