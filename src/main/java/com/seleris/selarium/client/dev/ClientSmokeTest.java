@@ -19,10 +19,16 @@ import com.seleris.selarium.ward.WardDefinitions;
 import com.seleris.selarium.ward.WardProjectionSavedData;
 import com.seleris.selarium.ward.WardRequirement;
 import com.seleris.selarium.ward.WardType;
+import net.minecraft.advancements.Advancement;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Screenshot;
+import net.minecraft.client.particle.Particle;
+import net.minecraft.client.particle.ParticleEngine;
+import net.minecraft.client.particle.ParticleRenderType;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.advancements.AdvancementsScreen;
+import net.minecraft.client.multiplayer.ClientAdvancements;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.Registries;
@@ -53,6 +59,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.util.ObfuscationReflectionHelper;
 import net.minecraftforge.network.NetworkHooks;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.lwjgl.glfw.GLFW;
@@ -63,6 +70,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Queue;
+import java.util.Set;
+import java.util.TreeMap;
 
 /**
  * Drives a real client in CI: creates a flat world, builds a small showcase (active sigils, machines,
@@ -175,8 +186,25 @@ public final class ClientSmokeTest {
         Files.createDirectories(dir);
         try (NativeImage image = Screenshot.takeScreenshot(mc.getMainRenderTarget())) {
             image.writeToFile(dir.resolve(name + ".png").toFile());
-            LOGGER.info("SMOKE shot {} {}x{} particles={}", name, image.getWidth(), image.getHeight(),
-                    mc.particleEngine.countParticles());
+            LOGGER.info("SMOKE shot {} {}x{} particles={} {}", name, image.getWidth(), image.getHeight(),
+                    mc.particleEngine.countParticles(), particleSummary(mc));
+        }
+    }
+
+    /** Live particles grouped by class, so an unexpected emitter (say a vanilla effect swirl) can be named. */
+    private static String particleSummary(Minecraft mc) {
+        try {
+            Map<ParticleRenderType, Queue<Particle>> all = ObfuscationReflectionHelper.getPrivateValue(ParticleEngine.class,
+                    mc.particleEngine, "particles");
+            Map<String, Integer> counts = new TreeMap<>();
+            for (Queue<Particle> queue : all.values()) {
+                for (Particle particle : queue) {
+                    counts.merge(particle.getClass().getSimpleName(), 1, Integer::sum);
+                }
+            }
+            return counts.toString();
+        } catch (Throwable t) {
+            return "(particle classes unavailable: " + t.getClass().getSimpleName() + ")";
         }
     }
 
@@ -242,6 +270,8 @@ public final class ClientSmokeTest {
                 mc.setScreen(new CatalogScreen(List.of(ScrollData.ward(mc.player, WardType.BANISHMENT), ScrollData.attunement(mc.player, 2)), true))));
         steps.add(new Step("item tooltips", "32_gui_tooltips_items", 10, mc ->
                 mc.setScreen(new CatalogScreen(tooltipSamples(), true))));
+        steps.add(new Step("grant advancements", null, 40, mc -> onServer(mc, ClientSmokeTest::grantAdvancements)));
+        steps.add(new Step("advancements", "33_gui_advancements", 30, ClientSmokeTest::openAdvancements));
         steps.add(new Step("close", null, 10, mc -> mc.player.closeContainer()));
         return steps;
     }
@@ -312,6 +342,25 @@ public final class ClientSmokeTest {
                 graphics.pose().popPose();
             }
         }
+    }
+
+    /** Completes most of the Selarium tree (the last few stay open) so the screen shows both states. */
+    private static void grantAdvancements(MinecraftServer server, ServerLevel level, ServerPlayer player) {
+        Set<String> open = Set.of("attunement_3", "attunement_4", "all_wards");
+        for (Advancement advancement : server.getAdvancements().getAllAdvancements()) {
+            if (!advancement.getId().getNamespace().equals(Selarium.MOD_ID) || open.contains(advancement.getId().getPath())) {
+                continue;
+            }
+            for (String criterion : advancement.getCriteria().keySet()) {
+                player.getAdvancements().award(advancement, criterion);
+            }
+        }
+    }
+
+    private static void openAdvancements(Minecraft mc) {
+        ClientAdvancements advancements = mc.player.connection.getAdvancements();
+        advancements.setSelectedTab(advancements.getAdvancements().get(ResourceLocation.fromNamespaceAndPath(Selarium.MOD_ID, "root")), false);
+        mc.setScreen(new AdvancementsScreen(advancements));
     }
 
     private static void pressRight(Minecraft mc, int times) {

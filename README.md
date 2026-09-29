@@ -7,6 +7,8 @@ de cristais de geodo e com **mana**, e ativa **proteções (wards)** — barreir
 **área esférica** ao redor do sigilo: curar aliados, expulsar invasores, acelerar plantações, prender projéteis,
 levantar muralhas temporárias…
 
+![Selarium em jogo](docs/img/banner.jpg)
+
 ![Fluxo do mod](docs/img/flow.png)
 
 ## Destaques
@@ -25,6 +27,19 @@ levantar muralhas temporárias…
 - **Grimório de Wards**: regras por jogador, por categoria de criatura e por proteção.
 - **Mundo**: geodos arcanos com cristais que crescem, árvore arcana com pétalas.
 - Idiomas: **Português (Brasil)** e **English**.
+
+## Galeria
+
+Capturas reais do jogo, tiradas automaticamente pelo CI (o cliente roda com renderização por software em 854×480;
+numa GPU o resultado é mais nítido e fluido).
+
+| | |
+|---|---|
+| ![Cinco campos ativos à noite](docs/img/gallery/campos_noite.jpg)<br>*Cinco campos ativos à noite: cada proteção tem a sua cor e o seu estilo de casca.* | ![O sigilo ativo](docs/img/gallery/sigilo_detalhe.jpg)<br>*O sigilo ativo: círculo de giz, glifo, anéis de luz, cristal-foco e coluna de luz.* |
+| ![Casca de runas](docs/img/gallery/casca_de_runas.jpg)<br>*Casca de runas (Ward Sussurrante).* | ![Campo hostil](docs/img/gallery/banimento.jpg)<br>*Campo hostil (Banimento): um anel varre o chão a cada ciclo.* |
+| ![Muralha da Cidadela](docs/img/gallery/cidadela.jpg)<br>*Muralha da Cidadela: as juntas brilham no escuro.* | ![Campo de pergaminho](docs/img/gallery/projecao.jpg)<br>*Campo de pergaminho (sem block entity), com a muralha ao fundo.* |
+| ![Moedores Arcanos](docs/img/gallery/maquinas.jpg)<br>*Moedores Arcanos, parado e ligado (runas acesas).* | ![Tanques de mana](docs/img/gallery/tanques.jpg)<br>*Tanques de mana com 0%, 50% e 100%.* |
+| ![Materiais](docs/img/gallery/materiais.jpg)<br>*Blocos do geodo, madeira arcana, folhas e pétalas.* | |
 
 ## Como jogar (o essencial)
 
