@@ -4,8 +4,8 @@
 
 Selarium é um mod de **magia ritual**. Você desenha **sigilos** no chão com poeira arcana, alimenta-os com **poeiras** refinadas
 de cristais de geodo e com **mana**, e ativa **proteções (wards)** — barreiras e campos que aplicam efeitos numa
-**área esférica** ao redor do sigilo: curar aliados, expulsar invasores, acelerar plantações, prender projéteis,
-levantar muralhas temporárias…
+**área** ao redor do sigilo (uma esfera de efeito, mostrada como uma cúpula de cristal facetada): curar aliados,
+expulsar invasores, acelerar plantações, prender projéteis, levantar muralhas temporárias…
 
 ![Selarium em jogo](docs/img/banner.jpg)
 
@@ -15,11 +15,13 @@ levantar muralhas temporárias…
 
 - **32 proteções** em 7 categorias (fonte de mana, detecção, benefícios, utilidades, efeitos hostis, estruturas, eventos) —
   veja a [referência completa](docs/WARDS.md).
-- **Sigilo vivo**: círculo de giz, marcas por tipo de poeira, glifo próprio de cada proteção e, ao ativar, anéis de luz
-  giratórios, runas em órbita, um cristal-foco flutuante e a **casca translúcida do campo** mostrando exatamente onde a
+- **Nada é redondo**: a identidade visual é angular. Giz desenhado à mão (um decágono irregular), anéis de luz que são
+  polígonos, glifos feitos de facetas, geodos irregulares e facetados e uma **cúpula de cristal** no lugar da esfera lisa.
+- **Sigilo vivo**: marcas por tipo de poeira, glifo próprio de cada proteção e, ao ativar, anéis de luz giratórios,
+  runas em órbita, um cristal-foco flutuante e a **cúpula do campo**, com o contorno rúnico no chão, mostrando onde a
   proteção age.
-- **Partículas próprias** (fagulhas, runas, orbes de mana e um anel que varre o chão a cada ciclo) enviadas pelo servidor
-  com a cor da proteção.
+- **Partículas próprias** (fagulhas em estrela, pipas de luz, runas e um anel octogonal que varre o chão a cada ciclo)
+  enviadas pelo servidor com a cor da proteção.
 - **Máquinas modeladas em 3D**: Moedor Arcano (estado *ligado* com runas acesas), Tanque de Mana com fluido animado,
   Bancada de Inscrição, cristais facetados em 4 estágios de crescimento, livros e pergaminhos 3D.
 - **Progressão por mana**: mana do jogador, limites que crescem por marcos, pergaminhos de sintonização e de proteção

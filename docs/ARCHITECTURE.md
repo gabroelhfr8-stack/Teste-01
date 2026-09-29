@@ -72,8 +72,11 @@ flowchart TD
 
 - **`ArcaneSigilRenderer`** desenha, de baixo para cima: círculo de giz → marcas de poeira → glifo → anéis de luz → runas em
   órbita → cristal-foco → feixe de luz → casca do campo. Tudo em texturas brancas tingidas por cor (ward/poeira).
-- **`WardShellRenderer`** desenha o anel no chão e a casca (esfera com opacidade máxima na silhueta e perto do observador;
-  estilos `SOFT`, `HEX`, `RUNES`). Campos de pergaminho são desenhados por `ProjectionShellEvents`.
+- **`WardShellRenderer`** desenha a linha rúnica no chão e a **cúpula de cristal** do campo (estilos `SOFT`, `HEX`, `RUNES`).
+  A geometria vem de `ShellGeometry` (poliedro geodésico de 80 faces, com cantos puxados para dentro de forma diferente
+  por campo, sempre dentro da esfera real); cada face tem brilho próprio e opacidade máxima quando vista de lado.
+  Regra do projeto: nada é perfeitamente redondo (`docs/VISUAL_IDENTITY.md`, `util/Facets`). Campos de pergaminho são
+  desenhados por `ProjectionShellEvents`.
 - **Partículas**: `wisp`, `spark`, `rune` e `ring` (anel plano que se expande). Descritores em `assets/selarium/particles`.
 - **Configuração**: `config/selarium-client.toml` → `vfxQuality` (OFF/LOW/MEDIUM/HIGH), `wardShells`, `shellOpacity`…
 - **Blend aditivo**: `SelariumRenderTypes.additive` usa `LIGHTNING_TRANSPARENCY` (`SRC_ALPHA, ONE`). O
@@ -93,7 +96,7 @@ Todos os assets visuais gerados ficam em `tools/art` (Python + numpy/Pillow) e s
 | `machines.py`, `item_models.py`, `data_assets.py` | modelos JSON multi-elemento (via DSL `models.py`) |
 | `items.py`, `covers.py` | sprites de itens, capas de livros, selos |
 | `sigil.py` | 32 glifos, marcas de poeira e anéis rotativos (vetorial, 256 px) |
-| `vfx.py` | partículas, casca hexagonal, faixa de runas, feixe, fluido de mana |
+| `vfx.py` | partículas, textura das facetas da cúpula, linha do chão, faixa de runas, feixe, fluido de mana |
 | `walls.py` | texturas animadas da Muralha e da Barreira Tangível |
 
 Para revisar um modelo sem abrir o jogo: `node tools/preview/render.cjs --out out.png block/arcane_grinder`.

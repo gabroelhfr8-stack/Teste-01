@@ -19,12 +19,33 @@ Avoid:
 - Overloaded noise, random symbols, or heavy black metal everywhere.
 - Assets that do not explain their craft, function, or place in the Selarium loop.
 
+## Shape Language: nothing is round
+
+Selarium is angular. **No perfect circle, disc or sphere appears anywhere in its art or effects.** Round shapes read
+as generic UI or as a wheel; cut stone, crystal and chalk drawn by hand read as ritual.
+
+- Every "circle" is a polygon: an octagon by default, a decagon for the chalk ring, a hexagon or a diamond when small.
+- Arcs are chains of straight facets (`FACET_DEG`), curves are sampled coarsely, and strokes end in mitred corners.
+  All of that lives in `tools/art/vec.py`, so a new glyph gets the look for free. Do not call PIL's `ellipse`.
+- Soft glows use an octagonal or diamond falloff (`octagon_norm`), never a radial one: the wisp is a kite, the halo
+  behind the focus crystal an octagon.
+- The field of a ward is a **cut-crystal dome**: an 80-face geodesic polyhedron whose corners are pulled in by a
+  different amount for every field (`ShellGeometry`), with a polygonal outline on the ground. It always sits inside
+  the true sphere the ward acts on.
+- Anything that moves along a "circle" follows an octagon (`Facets.polygonRadius`): orbiting runes, the dust marks and
+  the particles that gather around a sigil. Bursts fly along the corners of a cube, not in a round puff.
+- Natural shapes are irregular as well: geodes are chamfered, lumpy crystal cavities, the sapling's crown is a cluster
+  of diamonds, growth rings on logs are octagons, dust piles are straight-sided scree, wax seals are chipped.
+- Pixel art at 32x32 makes any disc look round, so it is built from `octagon_norm` or an L1 (diamond) distance instead
+  of `hypot`.
+
 ## Dusts
 
 Dusts must read like magical powder, similar in silhouette logic to redstone or gunpowder.
 
 Rules:
-- Use the same compact powder mound silhouette for every dust.
+- Use the same compact mound silhouette for every dust: three straight-sided peaks, like crystal scree (never a
+  rounded dune).
 - Use color, brightness, and a few small particles to distinguish types.
 - Basic dusts are simple, readable piles.
 - Refined dusts keep the same silhouette but gain stronger contrast, saturation, and subtle extra sparkles.
@@ -92,11 +113,12 @@ The Arcane Sigil is drawn on the ground with powder and magical energy. It has n
 builds it every frame from white, tintable textures so one set of assets serves all 32 wards.
 
 Layers, bottom to top:
-1. Chalk circle (`vfx/sigil/base_circle`), always visible.
+1. Chalk figure (`vfx/sigil/base_circle`), always visible: a hand-drawn decagon around a hexagon, with eight spokes.
 2. One small mark per dust type in the sigil (`vfx/sigil/component/<dust>`), tinted with the dust colour.
 3. The ward glyph (`vfx/sigil/glyph/<ward>`), tinted with the ward colour. Each glyph is a distinct vector rune.
-4. While active: slowly counter-rotating rings, orbiting runes, a floating focus crystal, a faint light column and the
-   translucent field shell that shows the real area.
+4. While active: slowly counter-rotating polygonal rings (an octagon, a decagon of runes, an octagram, a hexagon of
+   dashes), orbiting runes on an octagonal path, a floating focus crystal, a faint light column and the crystal dome
+   that shows the field.
 
 Rules:
 - No filled square background and no translucent plate; only line work with real alpha.
@@ -111,10 +133,16 @@ Prefer simple and beautiful over complex and noisy.
 
 Every ward has a signature primary and secondary colour in `WardStyles`, and one of four shell styles:
 
-- `SOFT`: flowing energy dome, the default for buffs and utilities.
+All three styles share the same faceted dome (every facet catches the light differently, with a bright rim, an inset
+line and glinting corners) and differ in what fills the facets:
+
+- `SOFT`: drifting energy clouds, the default for buffs and utilities.
 - `HEX`: hexagonal force-field lattice, for defensive and hostile control wards (Banishment, Crushing, Stasis, Deflection...).
-- `RUNES`: scrolling band of runes, for wards about information and subtle effects (Whispering, Silence, Transmutation).
+- `RUNES`: faint clouds plus a scrolling band of runes hugging the equator, for wards about information and subtle
+  effects (Whispering, Silence, Transmutation).
 - `NONE`: the ward is already visible as real blocks (Citadel, Tangible).
+
+On the ground the field is marked by a runic line that follows the dome's own outline, with ticks that travel along it.
 
 Colours are chosen so neighbours in a category stay distinguishable: blues and greens for support, warm golds and
 greens for utilities, reds and magentas for hostile pressure, violets for structures, and gold, teal and orange for events. The same colour
@@ -125,11 +153,11 @@ tints the sigil glyph, the field shell, the ward's particles and the seal of its
 Four custom particles (`selarium:wisp`, `spark`, `rune`, `ring`) carry a colour and a scale, so the server can send one
 particle type in any ward colour (`WardFx`, `GlowParticleOptions`).
 
-- **Wisp**: soft orb that drifts upwards; the ambient life of a sigil and the shimmer on every creature a ward touches.
+- **Wisp**: a small kite of light with a thin glint that drifts upwards; the ambient life of a sigil and the shimmer on every creature a ward touches.
 - **Spark**: small fast glint; bursts for events (a deflected projectile, a prevented death), dotted trails for drain,
   soul-chain and mana transfer, and the work of the Grinder and the Inscription Bench.
 - **Rune**: a tiny floating glyph, used only in the burst when a sigil activates.
-- **Ring**: a flat ring that expands along the ground; the visible beat of every ward cycle and of activation.
+- **Ring**: a flat octagonal ring that expands along the ground; the visible beat of every ward cycle and of activation.
 
 Use particles sparingly: one clear cue per event. Continuous effects live on the sigil renderer, not in particle floods.
 
@@ -155,6 +183,7 @@ Rules:
 ## Future Asset Checks
 
 Before adding or replacing assets, check:
+- Is anything a perfect circle, disc or sphere? Make it a polygon, a facet or a diamond.
 - Does this asset look magical, ritualistic, or crystal/mana related?
 - Does it belong to the same family as the other Selarium assets?
 - Does it explain the item or block function at a glance?

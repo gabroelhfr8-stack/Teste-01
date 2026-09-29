@@ -24,6 +24,20 @@
 - Ward activation, deactivation and scroll casting have sound cues; a successful attunement ritual plays a chime with a
   ring and rune burst.
 
+### Nothing is round
+- New shape rule (`docs/VISUAL_IDENTITY.md`): no perfect circle, disc or sphere in the art or the effects.
+- The field of a ward is a **cut-crystal dome** (an 80-face geodesic polyhedron with irregular corners, `ShellGeometry`)
+  instead of a smooth sphere; every facet has its own brightness, a glowing rim and glinting corners, and a runic
+  polygon marks the field on the ground. The dome always sits inside the sphere the ward acts on.
+- Sigil art is angular: a hand-drawn chalk decagon, an octagon, a decagon of runes, an octagram and a hexagon of dashes
+  replace the round rings; all 32 glyphs and the dust marks are drawn with straight facets and mitred corners.
+- Orbiting runes, the dust marks and the particles around a sigil follow octagons; bursts fly along the corners of a
+  cube. Particles are kites, stars and octagonal pulses instead of soft round blobs.
+- Items and blocks: dust piles are straight-sided crystal scree, the sigil icon is an octagon, wax seals are chipped
+  octagons, log rings are octagons and the sapling's crown is a cluster of diamonds.
+- Geodes are lumpy, chamfered crystal cavities instead of perfect ellipsoids.
+- Long translations shrink to fit in buttons and lists before they are cut with an ellipsis.
+
 ### Interface
 - Codex: a **Ward Atlas** page shows every ward's glyph in a grid; click one to read its recipe, range, upkeep and effect.
   The former 290-line text page is now a short introduction.

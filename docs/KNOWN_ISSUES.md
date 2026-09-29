@@ -10,9 +10,11 @@ This file tracks acceptable Alpha limitations and items to revisit after the fir
 
 ## Wards
 
-- Every ward area is now a sphere of radius `range` (the same volume the client draws). Most wards used to query a
-  cube of half-side `range`, so their reach in the corners is gone and the covered volume is about half
-  (pi/6). Ranges were not re-tuned; compare against `docs/WARDS.md` when playtesting.
+- Every ward area is now a sphere of radius `range`. Most wards used to query a cube of half-side `range`, so their
+  reach in the corners is gone and the covered volume is about half (pi/6). Ranges were not re-tuned; compare against
+  `docs/WARDS.md` when playtesting.
+- The crystal dome drawn on the client is a faceted polyhedron that sits **inside** that sphere: its corners are pulled
+  in by up to 11 %, so a ward can reach a little past the visible facets in places (never the other way round).
 - Citadel and Tangible create temporary structures. Their walls animate, but there is no build-up or fade-out
   animation when they appear or expire.
 - Tangible currently behaves as a practical barrier field; selective passage for allies is limited until a later
@@ -29,7 +31,7 @@ This file tracks acceptable Alpha limitations and items to revisit after the fir
 - All visual effects are cosmetic and client-side except the particles, which the server sends (as coloured
   `ParticleOptions`) so every player sees the same ward pulses. On servers with many wards, lower `vfxQuality` in
   `selarium-client.toml` or the server's particle traffic will still be there; a server-side toggle is a possible follow-up.
-- Ward shells and sigil rings are drawn with additive, unlit render types. They read best against dark ground and
+- Ward domes, the runic ground outline and sigil rings are drawn with additive, unlit render types. They read best against dark ground and
   at night; some resource packs or shader packs may need `wardShells = OFF`.
 - There are no custom sounds for wards yet; activation, pulses and events reuse vanilla sound events.
 - The CI smoke test renders with a software OpenGL driver at 854x480, so it verifies that rendering works but not

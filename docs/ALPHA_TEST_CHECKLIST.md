@@ -61,9 +61,10 @@ Use this checklist for the first internal survival pass. Start with default conf
 
 Do this pass on a real GPU; CI only proves that rendering does not crash.
 
-- [ ] An unused sigil shows a chalk circle; each dust type adds its own mark.
+- [ ] An unused sigil shows a hand-drawn chalk decagon; each dust type adds its own mark.
 - [ ] An active sigil shows its ward glyph, rotating rings, orbiting runes, the floating focus crystal and the light column.
-- [ ] The translucent field shell matches the real area (a sphere of radius `range`) and is tinted per ward category.
+- [ ] The crystal dome encloses the real area (a sphere of radius `range`; the dome sits just inside it), is faceted rather than round and is tinted per ward category.
+- [ ] Nothing looks perfectly round: rings and outlines are polygons, particles are kites and stars, geodes are lumpy and faceted.
 - [ ] Turning a ward on plays the expanding ring and rune burst; turning it off fades out with wisps.
 - [ ] Each ward cycle pulses; affected creatures shimmer; event wards (Immortal, Deflection, Disruption) burst.
 - [ ] `selarium-client.toml`: `vfxQuality` (OFF/LOW/MEDIUM/HIGH), `wardShells` (OFF/NEAR/ALWAYS) and `shellOpacity` behave.
