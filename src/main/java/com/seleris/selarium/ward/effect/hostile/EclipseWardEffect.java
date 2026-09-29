@@ -26,7 +26,7 @@ public final class EclipseWardEffect implements IWardEffect {
                 SelariumCommonConfig.ECLIPSE_WARD_MAX_ENTITIES_PER_CYCLE.get(),
                 SelariumCommonConfig.ECLIPSE_WARD_MANA_COST_PER_ENTITY.get(),
                 target -> {
-                    target.addEffect(new MobEffectInstance(effect, SelariumCommonConfig.ECLIPSE_WARD_EFFECT_DURATION_TICKS.get(), 0, false, true, true));
+                    target.addEffect(new MobEffectInstance(effect, SelariumCommonConfig.ECLIPSE_WARD_EFFECT_DURATION_TICKS.get(), 0, false, false, true));
                     if (SelariumCommonConfig.ECLIPSE_WARD_CLEAR_MOB_TARGET.get() && target instanceof Mob mob) {
                         mob.setTarget(null);
                     }

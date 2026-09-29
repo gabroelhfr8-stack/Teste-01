@@ -33,7 +33,7 @@ public final class WardEffectUtils {
     public static void applyOwnerEffect(WardContext context, int range, int manaCost, MobEffect effect, int durationTicks, int amplifier, Consumer<ServerPlayer> afterApply) {
         for (ServerPlayer ally : WardTargetingService.findAlliedPlayersInRange(context.level(), context.pos(), context.sigil(), range)) {
             if (hasFieldUpkeep(context) || WardManaService.consume(context.level(), context.pos(), context.sigil(), manaCost)) {
-                ally.addEffect(new MobEffectInstance(effect, durationTicks, amplifier, true, true, true));
+                ally.addEffect(new MobEffectInstance(effect, durationTicks, amplifier, true, false, true));
                 afterApply.accept(ally);
                 WardFx.touch(context.level(), ally, context.sigil().getWardType());
             }

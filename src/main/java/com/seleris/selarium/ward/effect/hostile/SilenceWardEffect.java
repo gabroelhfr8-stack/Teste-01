@@ -26,9 +26,9 @@ public final class SilenceWardEffect extends ConfiguredWardEffect {
                                 .forEach(effect -> target.removeEffect(effect.getEffect()));
                     }
                     if (config.optionB().get()) {
-                        target.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, config.effectDurationTicks().get(), 0, false, true, true));
+                        target.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, config.effectDurationTicks().get(), 0, false, false, true));
                     }
-                    target.addEffect(new MobEffectInstance(MobEffects.DIG_SLOWDOWN, config.effectDurationTicks().get(), 0, false, true, true));
+                    target.addEffect(new MobEffectInstance(MobEffects.DIG_SLOWDOWN, config.effectDurationTicks().get(), 0, false, false, true));
                 });
     }
 }

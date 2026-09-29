@@ -19,9 +19,9 @@ public final class CrushingWardEffect extends ConfiguredWardEffect {
     protected void apply(WardContext context, SelariumCommonConfig.MvpWardConfig config) {
         int affected = WardEffectUtils.applyToInvaders(context, config.range().get(), config.affectPlayers().get(), config.affectBosses().get(),
                 config.maxEntitiesPerCycle().get(), config.manaCost().get(), target -> {
-                    target.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, config.effectDurationTicks().get(), config.amplifier().get(), false, true, true));
+                    target.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, config.effectDurationTicks().get(), config.amplifier().get(), false, false, true));
                     if (config.optionA().get()) {
-                        target.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, config.effectDurationTicks().get(), 0, false, true, true));
+                        target.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, config.effectDurationTicks().get(), 0, false, false, true));
                     }
                     Vec3 motion = target.getDeltaMovement();
                     double horizontalScale = Math.max(0.05D, Math.min(0.45D, config.strength().get() <= 0.0D ? 0.2D : 1.0D / (config.strength().get() + 1.0D)));

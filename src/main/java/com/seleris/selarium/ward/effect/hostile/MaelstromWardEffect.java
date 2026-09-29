@@ -21,7 +21,7 @@ public final class MaelstromWardEffect extends ConfiguredWardEffect {
                 config.maxEntitiesPerCycle().get(), config.manaCost().get(), target -> {
                     target.hurt(context.level().damageSources().drown(), config.strength().get().floatValue());
                     target.setAirSupply(Math.max(-20, target.getAirSupply() - 80));
-                    target.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, config.effectDurationTicks().get(), config.amplifier().get(), false, true, true));
+                    target.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, config.effectDurationTicks().get(), config.amplifier().get(), false, false, true));
                     Vec3 toCenter = Vec3.atCenterOf(context.pos()).subtract(target.position()).normalize().scale(0.08D);
                     target.setDeltaMovement(target.getDeltaMovement().add(toCenter.x, -0.03D, toCenter.z));
                     target.hurtMarked = true;

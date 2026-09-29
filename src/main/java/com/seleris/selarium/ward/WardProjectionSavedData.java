@@ -3,7 +3,7 @@ package com.seleris.selarium.ward;
 import com.seleris.selarium.network.ProjectionSyncPacket;
 import com.seleris.selarium.network.SelariumNetwork;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.particles.ParticleTypes;
+import com.seleris.selarium.particle.GlowParticleOptions;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
@@ -144,9 +144,9 @@ public final class WardProjectionSavedData extends SavedData {
             if (level.isLoaded(projection.pos())) {
                 WardManager.tick(new WardContext(level, projection.pos(), level.getBlockState(projection.pos()), projection));
                 if (now % 20 == 0) {
-                    level.sendParticles(ParticleTypes.ENCHANT, projection.pos().getX() + 0.5,
-                            projection.pos().getY() + 0.5, projection.pos().getZ() + 0.5,
-                            8, 0.6, 0.4, 0.6, 0.02);
+                    level.sendParticles(GlowParticleOptions.rune(WardStyles.secondary(projection.getWardType()), 0.9F),
+                            projection.pos().getX() + 0.5, projection.pos().getY() + 0.5, projection.pos().getZ() + 0.5,
+                            6, 0.6, 0.4, 0.6, 0.02);
                 }
             } else {
                 projection.tickWardTimers(); // Fixed fields still expire in unloaded chunks.

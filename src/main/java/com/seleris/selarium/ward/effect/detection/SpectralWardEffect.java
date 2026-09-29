@@ -18,6 +18,6 @@ public final class SpectralWardEffect implements IWardEffect {
                 true,
                 SelariumCommonConfig.SPECTRAL_WARD_MAX_ENTITIES_PER_CYCLE.get(),
                 SelariumCommonConfig.SPECTRAL_WARD_MANA_COST_PER_ENTITY.get(),
-                target -> target.addEffect(new MobEffectInstance(MobEffects.GLOWING, SelariumCommonConfig.SPECTRAL_WARD_GLOWING_DURATION_TICKS.get(), 0, false, true, true)));
+                target -> target.addEffect(new MobEffectInstance(MobEffects.GLOWING, SelariumCommonConfig.SPECTRAL_WARD_GLOWING_DURATION_TICKS.get(), 0, false, false, true)));
     }
 }

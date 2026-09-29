@@ -21,8 +21,8 @@ public final class StasisWardEffect extends ConfiguredWardEffect {
     protected void apply(WardContext context, SelariumCommonConfig.MvpWardConfig config) {
         int affected = WardEffectUtils.applyToInvaders(context, config.range().get(), config.affectPlayers().get(), config.affectBosses().get(),
                 config.maxEntitiesPerCycle().get(), config.manaCost().get(), target -> {
-                    target.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, config.effectDurationTicks().get(), config.amplifier().get(), false, true, true));
-                    target.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, config.effectDurationTicks().get(), 0, false, true, true));
+                    target.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, config.effectDurationTicks().get(), config.amplifier().get(), false, false, true));
+                    target.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, config.effectDurationTicks().get(), 0, false, false, true));
                     target.setDeltaMovement(target.getDeltaMovement().scale(config.strength().get()));
                     target.hurtMarked = true;
                 });

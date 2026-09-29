@@ -18,9 +18,9 @@ public final class DecayWardEffect extends ConfiguredWardEffect {
     protected void apply(WardContext context, SelariumCommonConfig.MvpWardConfig config) {
         int affected = WardEffectUtils.applyToInvaders(context, config.range().get(), config.affectPlayers().get(), config.affectBosses().get(),
                 config.maxEntitiesPerCycle().get(), config.manaCost().get(), target -> {
-                    target.addEffect(new MobEffectInstance(MobEffects.WITHER, config.effectDurationTicks().get(), config.amplifier().get(), false, true, true));
+                    target.addEffect(new MobEffectInstance(MobEffects.WITHER, config.effectDurationTicks().get(), config.amplifier().get(), false, false, true));
                     if (config.optionA().get()) {
-                        target.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, config.effectDurationTicks().get(), 0, false, true, true));
+                        target.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, config.effectDurationTicks().get(), 0, false, false, true));
                     }
                 });
         context.sigil().recordWardDebug(affected, 0, affected > 0 ? "decay applied" : "no invaders");
