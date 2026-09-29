@@ -11,23 +11,41 @@ from .sigil import make_glyph
 S = 32
 
 
-def _emblem(glyph: str, color: str, size: int = 18) -> np.ndarray:
-    g = px.to_pil(make_glyph(glyph, 128)).resize((size, size), Image.LANCZOS)
-    arr = np.asarray(g, dtype=np.float32) / 255.0
+def _emblem(glyph: str, color: str, size: int = 22) -> np.ndarray:
+    """The ward glyph with thickened strokes, so it survives the reduction to a 32px cover."""
+    from PIL import ImageFilter
+    big = make_glyph(glyph, 256)
+    alpha = Image.fromarray((np.clip(big[..., 3], 0, 1) * 255).astype(np.uint8), "L").filter(ImageFilter.MaxFilter(3))
+    small = np.asarray(alpha.resize((size, size), Image.LANCZOS), dtype=np.float32) / 255.0
     out = px.blank(size)
     out[..., :3] = px.hexrgb(color)
-    out[..., 3] = (arr[..., 3] > 0.5).astype(np.float32)
+    out[..., 3] = (small > 0.35).astype(np.float32)
+    return out
+
+
+def _halo(emblem: np.ndarray, color: str, radius: float = 2.2) -> np.ndarray:
+    """Soft coloured glow around the emblem."""
+    from PIL import ImageFilter
+    pad = 6
+    canvas = np.zeros((emblem.shape[0] + pad * 2, emblem.shape[1] + pad * 2), dtype=np.float32)
+    canvas[pad:-pad, pad:-pad] = emblem[..., 3]
+    glow = np.asarray(Image.fromarray((canvas * 255).astype(np.uint8), "L").filter(ImageFilter.GaussianBlur(radius)), dtype=np.float32) / 255.0
+    out = px.blank(canvas.shape[0])
+    out[..., :3] = px.hexrgb(color)
+    out[..., 3] = np.clip(glow * 1.6, 0, 0.7)
     return out
 
 
 def cover(hue: str, glyph: str) -> np.ndarray:
     base = materials.book_cover(seed=81 if hue == "violet" else 82, hue=hue)
-    shade = px.blank(S)
     emb = _emblem(glyph, "#ffe497")
+    ox = (S - emb.shape[0]) // 2
+    oy = (S - emb.shape[1]) // 2 - 1
+    px.over(base, _halo(emb, "#6adcf0"), ox - 6, oy - 6)
     dark = emb.copy()
-    dark[..., :3] = px.hexrgb("#4b2a16")
-    px.over(base, dark, 7, 8)
-    px.over(base, emb, 7, 7)
+    dark[..., :3] = px.hexrgb("#3a1f10")
+    px.over(base, dark, ox, oy + 1)
+    px.over(base, emb, ox, oy)
     # gilded corner studs
     for (x, y) in ((3, 3), (28, 3), (3, 28), (28, 28)):
         base[y, x, :3] = pal.GOLD[6]
@@ -79,7 +97,7 @@ def seal_mask() -> np.ndarray:
 def build_all(assets):
     out = assets / "textures" / "item"
     blk = assets / "textures" / "block"
-    px.save(cover("violet", "ambient_mana"), out / "codex_cover.png")
+    px.save(cover("violet", "spectral"), out / "codex_cover.png")
     px.save(cover("indigo", "bulwark"), out / "grimoire_cover.png")
     px.save(spine(), out / "book_spine.png")
     px.save(ribbon("violet"), out / "ribbon_violet.png")
