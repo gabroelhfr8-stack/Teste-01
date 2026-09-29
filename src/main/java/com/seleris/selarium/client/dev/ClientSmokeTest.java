@@ -7,6 +7,8 @@ import com.seleris.selarium.block.ArcaneGrinderBlock;
 import com.seleris.selarium.blockentity.ArcaneSigilBlockEntity;
 import com.seleris.selarium.blockentity.ManaTankBlockEntity;
 import com.seleris.selarium.dust.DustDefinition;
+import com.seleris.selarium.dust.DustPurity;
+import com.seleris.selarium.dust.DustType;
 import com.seleris.selarium.registry.SelariumBlocks;
 import com.seleris.selarium.ward.WardDefinition;
 import com.seleris.selarium.ward.WardDefinitions;
@@ -21,7 +23,9 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Difficulty;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.GameType;
@@ -117,8 +121,12 @@ public final class ClientSmokeTest {
 
     private static void requestWorld(Minecraft mc) {
         worldRequested = true;
+        GameRules rules = new GameRules();
+        rules.getRule(GameRules.RULE_DOMOBSPAWNING).set(false, null);
+        rules.getRule(GameRules.RULE_DAYLIGHT).set(false, null);
+        rules.getRule(GameRules.RULE_WEATHER_CYCLE).set(false, null);
         LevelSettings settings = new LevelSettings("Selarium Smoke", GameType.CREATIVE, false, Difficulty.EASY, true,
-                new GameRules(), WorldDataConfiguration.DEFAULT);
+                rules, WorldDataConfiguration.DEFAULT);
         mc.createWorldOpenFlows().createFreshLevel("selarium_smoke_" + (System.currentTimeMillis() % 100000L), settings,
                 new WorldOptions(20260929L, false, false),
                 registries -> registries.registryOrThrow(Registries.WORLD_PRESET).getHolderOrThrow(WorldPresets.FLAT)
@@ -166,33 +174,27 @@ public final class ClientSmokeTest {
             mc.options.hideGui = true;
             onServer(mc, ClientSmokeTest::buildStage);
         }));
-        steps.add(new Step("wards overview (day)", "01_wards_overview_day", 80,
-                camera(0, 20, -40, 0, 2, 4)));
-        steps.add(new Step("bulwark close (day)", "02_bulwark_close_day", 60,
-                camera(-14, 3.5, 6, -20, 1, 0)));
-        steps.add(new Step("bulwark from above (day)", "03_bulwark_top_day", 60,
-                camera(-20, 10, 0.01, -20, 0, 0)));
+        steps.add(new Step("wards overview (day)", "01_overview_day", 80, camera(0, 22, -46, 0, 1, 2)));
+        steps.add(new Step("bulwark close (day)", "02_bulwark_close_day", 60, camera(-16.8, 3.2, 3.2, -20, 0.8, 0)));
+        steps.add(new Step("bulwark from above (day)", "03_bulwark_top_day", 60, camera(-20, 6, 0.01, -20, 0, 0)));
         steps.add(new Step("night falls", null, 20, mc -> time(mc, MIDNIGHT)));
-        steps.add(new Step("bulwark close (night)", "04_bulwark_close_night", 80,
-                camera(-14, 3.5, 6, -20, 1, 0)));
-        steps.add(new Step("banishment (night)", "05_banishment_night", 60,
-                camera(6, 3.5, 7, 0, 1.5, 0)));
-        steps.add(new Step("citadel (night)", "06_citadel_night", 60,
-                camera(20, 7, -20, 20, 3, 0)));
-        steps.add(new Step("wards overview (night)", "07_wards_overview_night", 60,
-                camera(0, 20, -40, 0, 2, 4)));
-        steps.add(new Step("workshop (night)", "08_workshop_night", 60,
-                camera(-3, 7, 31, -3, 1, 17)));
+        steps.add(new Step("bulwark close (night)", "04_bulwark_close_night", 80, camera(-16.8, 3.2, 3.2, -20, 0.8, 0)));
+        steps.add(new Step("bulwark from above (night)", "05_bulwark_top_night", 40, camera(-20, 6, 0.01, -20, 0, 0)));
+        steps.add(new Step("banishment (night)", "06_banishment_night", 60, camera(6, 3.5, 7, 0, 1.5, 0)));
+        steps.add(new Step("soft shell (night)", "07_soft_shell_night", 60, camera(-13, 3.5, -19, -20, 2, -26)));
+        steps.add(new Step("runes shell (night)", "08_runes_shell_night", 60, camera(7, 3.5, -19, 0, 2, -26)));
+        steps.add(new Step("citadel (night)", "09_citadel_night", 60, camera(20, 9, -22, 20, 4, 0)));
+        steps.add(new Step("wards overview (night)", "10_overview_night", 60, camera(0, 22, -46, 0, 1, 2)));
+        steps.add(new Step("workshop (night)", "11_workshop_night", 60, camera(-3, 8, 32, -3, 1, 16)));
+        steps.add(new Step("inactive sigil (night)", "12_inactive_sigil_night", 40, camera(-3, 1.9, 13.6, -3, 0, 11)));
         steps.add(new Step("day returns", null, 20, mc -> time(mc, NOON)));
-        steps.add(new Step("workshop (day)", "09_workshop_day", 80,
-                camera(-3, 7, 31, -3, 1, 17)));
-        steps.add(new Step("machines close", "10_machines_close_day", 40,
-                camera(-5, 2.6, 22, -5, 0.8, 16)));
-        steps.add(new Step("crystals and materials", "11_materials_day", 40,
-                camera(-3, 2.4, 25, -3, 0.6, 20)));
-        steps.add(new Step("hud", "12_hud_day", 40, mc -> {
+        steps.add(new Step("workshop (day)", "13_workshop_day", 80, camera(-3, 8, 32, -3, 1, 16)));
+        steps.add(new Step("inactive sigil (day)", "14_inactive_sigil_day", 40, camera(-3, 1.9, 13.6, -3, 0, 11)));
+        steps.add(new Step("machines close", "15_machines_close_day", 40, camera(-5, 2.6, 22.5, -5, 0.8, 16)));
+        steps.add(new Step("crystals and materials", "16_materials_day", 40, camera(0, 2.4, 24, 0, 0.6, 20)));
+        steps.add(new Step("hud", "17_hud_day", 40, mc -> {
             mc.options.hideGui = false;
-            camera(-5, 2.6, 22, -5, 0.8, 16).run(mc);
+            camera(-5, 2.6, 22.5, -5, 0.8, 16).run(mc);
         }));
         return steps;
     }
@@ -219,15 +221,20 @@ public final class ClientSmokeTest {
         rules.getRule(GameRules.RULE_WEATHER_CYCLE).set(false, server);
         rules.getRule(GameRules.RULE_DOMOBSPAWNING).set(false, server);
         level.setDayTime(NOON);
-        player.getAbilities().mayfly = true;
-        player.getAbilities().flying = true;
-        player.onUpdateAbilities();
+        // hover: the client cancels creative flight while standing on the ground, so remove gravity instead
+        player.setNoGravity(true);
+        player.setDeltaMovement(0.0D, 0.0D, 0.0D);
         player.setInvulnerable(true);
+        for (Entity entity : level.getAllEntities()) {
+            if (!(entity instanceof Player)) {
+                entity.discard();
+            }
+        }
 
         base = level.getHeight(Heightmap.Types.WORLD_SURFACE, 0, 0);
         BlockState floor = Blocks.DEEPSLATE_TILES.defaultBlockState();
         for (int x = -34; x <= 34; x++) {
-            for (int z = -14; z <= 26; z++) {
+            for (int z = -40; z <= 34; z++) {
                 level.setBlock(new BlockPos(x, base - 1, z), floor, 2);
             }
         }
@@ -236,6 +243,10 @@ public final class ClientSmokeTest {
         placeSigil(level, new BlockPos(-20, base, 0), player, WardType.BULWARK);
         placeSigil(level, new BlockPos(0, base, 0), player, WardType.BANISHMENT);
         placeSigil(level, new BlockPos(20, base, 0), player, WardType.CITADEL);
+        // the other two shell styles, one row behind
+        placeSigil(level, new BlockPos(-20, base, -26), player, WardType.REJUVENATION);
+        placeSigil(level, new BlockPos(0, base, -26), player, WardType.WHISPERING);
+        placeInactiveSigil(level, new BlockPos(-3, base, 11), player);
         Creeper creeper = EntityType.CREEPER.create(level);
         if (creeper != null) {
             creeper.moveTo(3.5D, base, 1.5D, 200.0F, 0.0F);
@@ -302,6 +313,18 @@ public final class ClientSmokeTest {
         }
         sigil.addInternalMana(4000, 4000);
         sigil.startWard(definition);
+    }
+
+    private static void placeInactiveSigil(ServerLevel level, BlockPos pos, ServerPlayer owner) {
+        level.setBlock(pos, SelariumBlocks.ARCANE_SIGIL.get().defaultBlockState(), 3);
+        if (!(level.getBlockEntity(pos) instanceof ArcaneSigilBlockEntity sigil)) {
+            throw new IllegalStateException("no sigil block entity at " + pos);
+        }
+        sigil.setOwner(owner.getUUID());
+        sigil.setCreatedGameTime(level.getGameTime());
+        for (DustType type : List.of(DustType.ARCANE, DustType.AEGIS, DustType.FOCUS, DustType.VITAL, DustType.ECHO)) {
+            sigil.addComponent(new DustDefinition(type, DustPurity.BASIC), false);
+        }
     }
 
     // ---- plumbing -------------------------------------------------------------------------------------------

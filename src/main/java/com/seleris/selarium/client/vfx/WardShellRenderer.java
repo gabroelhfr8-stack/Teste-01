@@ -73,15 +73,15 @@ public final class WardShellRenderer {
         poseStack.pushPose();
         poseStack.translate(0.5F, 0.5F, 0.5F);
         switch (style.shell()) {
-            case HEX -> sphere(poseStack, buffers.getBuffer(SelariumRenderTypes.glow(HEX)), radius, lon, lat, 6.0F, 3.0F,
+            case HEX -> sphere(poseStack, buffers.getBuffer(SelariumRenderTypes.additive(HEX)), radius, lon, lat, 6.0F, 3.0F,
                     scroll, scroll * 0.6F, style.primary(), 0.55F * opacity, viewer, inside);
             case RUNES -> {
-                sphere(poseStack, buffers.getBuffer(SelariumRenderTypes.glow(SOFT)), radius, lon, lat, 3.0F, 2.0F,
+                sphere(poseStack, buffers.getBuffer(SelariumRenderTypes.additive(SOFT)), radius, lon, lat, 3.0F, 2.0F,
                         scroll * 0.5F, scroll * 0.3F, style.primary(), 0.30F * opacity, viewer, inside);
                 band(poseStack, buffers.getBuffer(SelariumRenderTypes.additive(RUNES)), radius, 0.16F, high ? 48 : 32,
                         time * 0.004F, style.secondary(), 0.85F * opacity, viewer);
             }
-            default -> sphere(poseStack, buffers.getBuffer(SelariumRenderTypes.glow(SOFT)), radius, lon, lat, 3.0F, 2.0F,
+            default -> sphere(poseStack, buffers.getBuffer(SelariumRenderTypes.additive(SOFT)), radius, lon, lat, 3.0F, 2.0F,
                     scroll * 0.6F, scroll * 0.4F, style.primary(), 0.42F * opacity, viewer, inside);
         }
         poseStack.popPose();

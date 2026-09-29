@@ -18,13 +18,17 @@ public final class SelariumRenderTypes extends RenderType {
         super(name, format, mode, bufferSize, affectsCrumbling, sortOnUpload, setupState, clearState);
     }
 
-    /** Additive, fullbright, double-sided, no depth writes: for rings, beams and other light-emitting layers. */
+    /**
+     * Additive, fullbright, double-sided, no depth writes: for rings, beams and other light-emitting layers.
+     * Uses {@code LIGHTNING_TRANSPARENCY} (SRC_ALPHA, ONE): the vanilla {@code ADDITIVE_TRANSPARENCY} is (ONE, ONE),
+     * which ignores the texture's alpha and would draw every glow texture as a solid quad.
+     */
     private static final Function<ResourceLocation, RenderType> ADDITIVE = Util.memoize(texture -> create(
             "selarium_additive", DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS, 256, false, true,
             CompositeState.builder()
                     .setShaderState(RENDERTYPE_EYES_SHADER)
                     .setTextureState(new TextureStateShard(texture, false, false))
-                    .setTransparencyState(ADDITIVE_TRANSPARENCY)
+                    .setTransparencyState(LIGHTNING_TRANSPARENCY)
                     .setCullState(NO_CULL)
                     .setWriteMaskState(COLOR_WRITE)
                     .createCompositeState(false)));
