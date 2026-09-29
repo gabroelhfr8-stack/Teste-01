@@ -11,7 +11,7 @@ import numpy as np
 
 from . import px
 from .runes import RUNES, rune_strokes
-from .vec import Vec, add, ngon, rot, scale, star_polygon
+from .vec import Vec, add, along, chipped_ngon, ngon, ray_hit, rot, scale, star_polygon
 
 WARD_ORDER = [
     "ambient_mana", "whispering", "spectral", "bulwark", "rejuvenation", "featherweight", "grounding",
@@ -37,7 +37,7 @@ def finish(v: Vec, halo: float = 5.0, halo_strength: float = 0.32) -> np.ndarray
     return img
 
 
-def heart_points(cx, cy, size, steps=64):
+def heart_points(cx, cy, size, steps=16):
     pts = []
     for i in range(steps + 1):
         t = 2 * math.pi * i / steps
@@ -47,7 +47,7 @@ def heart_points(cx, cy, size, steps=64):
     return pts
 
 
-def ellipse_points(cx, cy, rx, ry, angle=0.0, steps=48):
+def ellipse_points(cx, cy, rx, ry, angle=0.0, steps=10):
     pts = []
     for i in range(steps + 1):
         t = 2 * math.pi * i / steps
@@ -98,7 +98,7 @@ def g_spectral(v):
         v.line((x, -0.42 - abs(x) * 0.25), (x * 1.15, -0.55 - abs(x) * 0.25), WF)
 
 
-def shield_pts(w=0.38, top=-0.42, mid=0.06, bottom=0.5, steps=14):
+def shield_pts(w=0.38, top=-0.42, mid=0.06, bottom=0.5, steps=4):
     pts = [(-w, top), (w, top), (w, mid)]
     for i in range(1, steps + 1):
         t = i / steps
@@ -136,14 +136,15 @@ def g_rejuvenation(v):
 
 def g_featherweight(v):
     tilt = 32
+    N = 12
 
     def T(p):
         return rot(p, tilt)
 
     # outline (lens) and curved spine of an upright feather, then tilted
     left, right = [], []
-    for i in range(33):
-        t = i / 32
+    for i in range(N + 1):
+        t = i / N
         y = 0.52 - t * 1.04
         half = 0.30 * math.sin(math.pi * min(1.0, t * 0.92 + 0.04)) ** 0.85
         bow = 0.05 * math.sin(math.pi * t)
@@ -151,7 +152,7 @@ def g_featherweight(v):
         right.append(T((half + bow, y)))
     v.polyline(left, WF)
     v.polyline(right, WF)
-    v.polyline([T((0.05 * math.sin(math.pi * i / 32), 0.56 - i / 32 * 1.12)) for i in range(33)], W)
+    v.polyline([T((0.05 * math.sin(math.pi * i / N), 0.56 - i / N * 1.12)) for i in range(N + 1)], W)
     for k in range(7):
         t = 0.16 + k * 0.105
         y = 0.52 - t * 1.04
@@ -284,7 +285,7 @@ def g_inversion(v):
 
 def g_aqualung(v):
     for k, y in enumerate((0.0, 0.18, 0.36)):
-        pts = [(x / 20.0, y + 0.05 * math.sin(x / 20.0 * 9 + k)) for x in range(-9, 10)]
+        pts = [(x / 20.0, y + 0.05 * math.sin(x / 20.0 * 9 + k)) for x in range(-9, 10, 3)]
         v.polyline(pts, W if k == 0 else WF)
     v.circle(-0.14, -0.22, 0.07, WF)
     v.circle(0.06, -0.34, 0.1, WF)
@@ -326,8 +327,8 @@ def g_bounty(v):
 
 def g_immortal(v):
     pts = []
-    for i in range(121):
-        t = 2 * math.pi * i / 120
+    for i in range(20):
+        t = 2 * math.pi * i / 20
         d = 1 + math.sin(t) ** 2
         pts.append((0.5 * math.cos(t) / d, 0.5 * math.sin(t) * math.cos(t) / d))
     v.polyline(pts, W, close=True)
@@ -343,18 +344,7 @@ def g_drain(v):
     v.disc(0, 0.02, 0.05)
 
 
-def stadium(cx, cy, half_len, r, angle=0.0, steps=18):
-    pts = []
-    for i in range(steps + 1):
-        a = -90 + 180 * i / steps
-        pts.append((half_len + r * math.cos(math.radians(a)), r * math.sin(math.radians(a))))
-    for i in range(steps + 1):
-        a = 90 + 180 * i / steps
-        pts.append((-half_len + r * math.cos(math.radians(a)), r * math.sin(math.radians(a))))
-    return [add((cx, cy), rot(p, angle)) for p in pts]
-
-
-def stadium(cx, cy, half_len, r, angle=0.0, steps=18):
+def stadium(cx, cy, half_len, r, angle=0.0, steps=4):
     pts = []
     for i in range(steps + 1):
         a = -90 + 180 * i / steps
@@ -430,8 +420,10 @@ def g_phasing(v):
 
 
 def g_incomplete(v):
-    for i in range(12):
-        v.arc(0, 0, 0.42, i * 30 + 4, i * 30 + 20, WF)
+    octagon = ngon(8, 0.44, start=-67.5)
+    for i in range(8):
+        a, b = octagon[i], octagon[(i + 1) % 8]
+        v.line((a[0] + (b[0] - a[0]) * 0.2, a[1] + (b[1] - a[1]) * 0.2), (a[0] + (b[0] - a[0]) * 0.8, a[1] + (b[1] - a[1]) * 0.8), WF)
     v.line((0, -0.2), (0, 0.2), W)
     v.disc(0, 0.32, 0.04)
 
@@ -520,33 +512,48 @@ def make_component(name: str, size: int = 64) -> np.ndarray:
 
 
 # ------------------------------------------------------------------------- rings
-def ring_marks(v: Vec, r_in: float, r_out: float, count: int, long_every: int = 5, width: float = WF * 0.7):
+# Every ring is a polygon: octagons, a decagon, an octagram. As they rotate on the ground their corners
+# sweep round, which is what makes them read as machinery rather than as wheels.
+def scaled(poly, k):
+    return [(x * k, y * k) for x, y in poly]
+
+
+def edge_ticks(v: Vec, outer, inner, count: int, long_every: int = 6, short: float = 0.55, width: float = WF * 0.7):
+    """Tick marks between two similar polygons, evenly spaced along their perimeter."""
     for i in range(count):
-        a = math.radians(360.0 * i / count)
-        r1 = r_out if i % long_every == 0 else (r_in + r_out) / 2 + 0.01
-        v.line((r_in * math.cos(a), r_in * math.sin(a)), (r1 * math.cos(a), r1 * math.sin(a)), width)
+        s = i / count
+        a, _ = along(inner, s)
+        b, _ = along(outer, s)
+        k = 1.0 if i % long_every == 0 else short
+        v.line(a, (a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k), width)
 
 
 def make_ring_outer(size: int = 256) -> np.ndarray:
     v = Vec(size)
-    v.circle(0, 0, 0.97, 0.022)
-    v.circle(0, 0, 0.90, 0.014)
-    ring_marks(v, 0.905, 0.965, 72, 6)
-    for a in (0, 90, 180, 270):
-        c = (0.935 * math.cos(math.radians(a)), 0.935 * math.sin(math.radians(a)))
-        v.polygon([add(c, rot((0, -0.05), a)), add(c, rot((0.035, 0), a)), add(c, rot((0, 0.05), a)), add(c, rot((-0.035, 0), a))])
+    outer = ngon(8, 0.985, start=-67.5)
+    inner = scaled(outer, 0.925)
+    v.polygon_outline(outer, 0.024)
+    v.polygon_outline(inner, 0.015)
+    edge_ticks(v, scaled(outer, 0.985), scaled(inner, 1.005), 64, 8)
+    for i in range(1, 8, 2):                       # a diamond in the middle of the four straight sides
+        mid, _ = along(scaled(outer, 0.955), (i + 0.5) / 8)
+        a = math.degrees(math.atan2(mid[1], mid[0]))
+        v.polygon([add(mid, rot((0, -0.055), a)), add(mid, rot((0.04, 0), a)), add(mid, rot((0, 0.055), a)), add(mid, rot((-0.04, 0), a))])
     return finish(v, halo=4.0, halo_strength=0.28)
 
 
 def make_ring_runes(size: int = 256) -> np.ndarray:
     v = Vec(size)
-    v.circle(0, 0, 0.88, 0.014)
-    v.circle(0, 0, 0.70, 0.014)
-    count = 24
+    outer = ngon(10, 0.92)
+    inner = scaled(outer, 0.78)
+    v.polygon_outline(outer, 0.015)
+    v.polygon_outline(inner, 0.015)
+    band = scaled(outer, 0.89)
+    count = 20
     for i in range(count):
-        a = 360.0 * i / count
-        c = (0.79 * math.cos(math.radians(a)), 0.79 * math.sin(math.radians(a)))
-        for stroke in rune_strokes(i, c[0], c[1], 0.11, a + 90):
+        c, tangent = along(band, (i + 0.5) / count)
+        a = math.degrees(math.atan2(tangent[1], tangent[0]))
+        for stroke in rune_strokes(i, c[0], c[1], 0.10, a + 180.0):
             v.polyline(stroke, 0.017)
     return finish(v, halo=3.5, halo_strength=0.3)
 
@@ -554,36 +561,47 @@ def make_ring_runes(size: int = 256) -> np.ndarray:
 def make_ring_star(size: int = 256) -> np.ndarray:
     v = Vec(size)
     v.polygon_outline(star_polygon(8, 3, 0.68), 0.016)
-    v.circle(0, 0, 0.70, 0.012)
+    v.polygon_outline(ngon(8, 0.70, start=-67.5), 0.012)
     v.polygon_outline(ngon(8, 0.30, start=-67.5), 0.014)
-    v.circle(0, 0, 0.22, 0.012)
+    v.polygon_outline(ngon(4, 0.24), 0.012)
     for p in ngon(8, 0.68):
-        v.disc(p[0], p[1], 0.022)
+        v.disc(p[0], p[1], 0.03, sides=4)
     return finish(v, halo=3.5, halo_strength=0.3)
 
 
 def make_ring_dash(size: int = 256) -> np.ndarray:
     v = Vec(size)
-    for i in range(24):
-        v.arc(0, 0, 0.58, i * 15 + 1, i * 15 + 10, 0.02)
+    hexagon = ngon(6, 0.62)
+    for i in range(6):
+        a, b = hexagon[i], hexagon[(i + 1) % 6]
+        for lo, hi in ((0.08, 0.42), (0.58, 0.92)):
+            v.line((a[0] + (b[0] - a[0]) * lo, a[1] + (b[1] - a[1]) * lo), (a[0] + (b[0] - a[0]) * hi, a[1] + (b[1] - a[1]) * hi), 0.02)
     for a in range(0, 360, 60):
         c = (0.5 * math.cos(math.radians(a)), 0.5 * math.sin(math.radians(a)))
-        v.polygon([add(c, rot((0, -0.05), a)), add(c, rot((0.04, 0.035), a)), add(c, rot((-0.04, 0.035), a))])
+        v.polygon([add(c, rot((0, -0.055), a)), add(c, rot((0.045, 0.04), a)), add(c, rot((-0.045, 0.04), a))])
     return finish(v, halo=3.0, halo_strength=0.25)
 
 
 def make_base_circle(size: int = 256) -> np.ndarray:
-    """The chalk-and-dust circle drawn on the ground before any ward is resolved."""
+    """The chalk-and-dust ritual figure drawn on the ground before any ward is resolved.
+
+    It is a hand-drawn decagon (every corner a little off), a smaller one inside it and a hexagon at the heart,
+    joined by eight spokes: chalk lines, so deliberately not perfect.
+    """
     rng = np.random.default_rng(7)
     v = Vec(size)
-    v.circle(0, 0, 0.95, 0.03)
-    v.circle(0, 0, 0.87, 0.016)
-    v.circle(0, 0, 0.30, 0.02)
+    outer = chipped_ngon(10, 0.95, 11, angle_jitter=3.0, radius_jitter=0.02)
+    inner = scaled(outer, 0.92)
+    heart = chipped_ngon(6, 0.30, 12, angle_jitter=4.0, radius_jitter=0.03)
+    v.polygon_outline(outer, 0.03)
+    v.polygon_outline(inner, 0.016)
+    v.polygon_outline(heart, 0.02)
     for a in range(0, 360, 45):
-        c1 = (0.30 * math.cos(math.radians(a)), 0.30 * math.sin(math.radians(a)))
-        c2 = (0.86 * math.cos(math.radians(a)), 0.86 * math.sin(math.radians(a)))
-        v.line(c1, c2, 0.012)
-    ring_marks(v, 0.885, 0.935, 48, 6, 0.012)
+        c1 = ray_hit(heart, a)
+        c2 = ray_hit(inner, a)
+        if c1 and c2:
+            v.line(c1, c2, 0.012)
+    edge_ticks(v, scaled(outer, 0.985), scaled(inner, 1.005), 50, 5, 0.6, 0.012)
     core = v.mask()
     grain = px.fbm(size, size, 24, 3, 3, tile=False)
     speckle = (rng.random((size, size)) > 0.985).astype(np.float32) * (v.glow(4.0) > 0.03)

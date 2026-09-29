@@ -11,7 +11,7 @@ import numpy as np
 from . import pal, px
 from .blocks import ramp_lookup
 from .runes import rune_strokes
-from .vec import Vec
+from .vec import Vec, octagon_norm
 
 
 def _white(alpha: np.ndarray) -> np.ndarray:
@@ -27,14 +27,18 @@ def _grid(w, h):
 
 
 def wisp(frame: int, size: int = 32) -> np.ndarray:
+    """A tall kite of light with a thin vertical glint: the flame of a sigil, not a soft ball."""
     x, y = _grid(size, size)
-    r = np.hypot(x, y)
-    pulse = 0.86 + 0.14 * math.sin(frame * math.pi / 2)
-    core = np.exp(-(r / (0.20 * pulse)) ** 2)
-    halo = np.exp(-(r / (0.52 * pulse)) ** 2) * 0.55
-    ang = np.arctan2(y, x) + frame * 0.6
-    lobes = (0.5 + 0.5 * np.cos(ang * 3)) * np.exp(-(r / 0.8) ** 2) * 0.16
-    return _white(core + halo + lobes)
+    ax, ay = np.abs(x), np.abs(y)
+    pulse = 0.88 + 0.12 * math.sin(frame * math.pi / 2)
+    d = ax / 0.50 + ay / 0.80                                    # 1.0 on the boundary of a diamond
+    core = np.exp(-(d / (0.46 * pulse)) ** 2)
+    halo = np.exp(-(d / (1.0 * pulse)) ** 2) * 0.6
+    reach = [0.72, 0.95, 0.85, 0.6][frame % 4]
+    needle = np.exp(-(x / 0.07) ** 2) * np.clip(1.0 - ay / reach, 0, 1) * 0.75
+    cross = np.exp(-(y / 0.07) ** 2) * np.clip(1.0 - ax / (reach * 0.55), 0, 1) * 0.4
+    edge = np.clip((1.0 - np.maximum(ax, ay)) / 0.12, 0, 1)
+    return _white((core + halo + needle + cross) * edge)
 
 
 def spark(frame: int, size: int = 32) -> np.ndarray:
@@ -46,7 +50,7 @@ def spark(frame: int, size: int = 32) -> np.ndarray:
     d = math.sqrt(0.5)
     xr, yr = (x + y) * d, (y - x) * d
     diag = np.exp(-((xr / (long_ * 0.5)) ** 2 + (yr / (short * 1.2)) ** 2)) * 0.6 + np.exp(-((yr / (long_ * 0.5)) ** 2 + (xr / (short * 1.2)) ** 2)) * 0.6
-    core = np.exp(-(np.hypot(x, y) / 0.12) ** 2)
+    core = np.exp(-((np.abs(x) + np.abs(y)) / 0.15) ** 2)          # a small diamond, not a dot
     return _white(np.maximum.reduce([a, b, diag]) + core)
 
 
@@ -60,8 +64,9 @@ def rune_sprite(index: int, size: int = 32) -> np.ndarray:
 
 
 def ring_wave(size: int = 128) -> np.ndarray:
+    """One expanding octagonal pulse with a fading trail behind its leading edge."""
     x, y = _grid(size, size)
-    r = np.hypot(x, y)
+    r = octagon_norm(x, y)
     band = np.exp(-((r - 0.9) / 0.045) ** 2)
     trail = np.exp(-((r - 0.78) / 0.14) ** 2) * 0.28 * (r < 0.9)
     edge = np.clip((1.0 - r) / 0.08, 0, 1)
@@ -69,8 +74,9 @@ def ring_wave(size: int = 128) -> np.ndarray:
 
 
 def glow_disc(size: int = 64) -> np.ndarray:
+    """A soft octagonal glow (the halo behind the focus crystal and in the tank)."""
     x, y = _grid(size, size)
-    r = np.hypot(x, y)
+    r = octagon_norm(x, y)
     return _white(np.exp(-(r / 0.42) ** 2) * np.clip((1 - r) / 0.25, 0, 1))
 
 
@@ -136,6 +142,42 @@ def shell_runes(w: int = 256, h: int = 64) -> np.ndarray:
     return _white(np.clip(mask + glow * 0.5 * (1 - mask), 0, 1))
 
 
+def shell_facet(size: int = 128) -> np.ndarray:
+    """A triangle with a bright rim, an inset second rim and glinting corners.
+
+    The dome renderer maps one of these onto every facet of the shell (corners at (0,0), (1,0), (0.5,1)),
+    which is what draws the cut-crystal edges.
+    """
+    yy, xx = np.mgrid[0:size, 0:size].astype(np.float32)
+    u, v = (xx + 0.5) / size, (yy + 0.5) / size
+    lc = v
+    lb = u - 0.5 * v
+    la = 1.0 - lb - lc
+    inside = (la >= 0) & (lb >= 0) & (lc >= 0)
+    lam = np.stack([la, lb, lc])
+    lam_sorted = np.sort(lam, axis=0)
+    rim = lam_sorted[0]
+    corner = lam_sorted[1]
+    edge = np.exp(-(rim / 0.022) ** 2)
+    inset = 0.30 * np.exp(-((rim - 0.075) / 0.012) ** 2)
+    glint = 0.55 * np.exp(-(corner / 0.05) ** 2) * (rim < 0.03)
+    body = 0.06 + 0.05 * px.fbm(size, size, 4, 411, 3)
+    alpha = np.clip(edge + inset + glint + body, 0, 1) * inside
+    return _white(alpha)
+
+
+def ring_edge(w: int = 128, h: int = 32) -> np.ndarray:
+    """Strip laid along the field's outline on the ground: a bright line, a soft inner fall-off and rune ticks."""
+    yy, xx = np.mgrid[0:h, 0:w].astype(np.float32)
+    u, v = (xx + 0.5) / w, (yy + 0.5) / h
+    line = np.exp(-(v / 0.09) ** 2)
+    glow = 0.32 * np.exp(-(v / 0.5) ** 2)
+    tick = np.clip(1.0 - np.abs(u - 0.5) / (0.10 * np.clip(1.0 - v / 0.8, 0.0, 1.0) + 1e-4), 0, 1) * (v < 0.8)
+    tick = np.where(tick > 0, 0.55 + 0.45 * tick, 0.0)
+    fade = np.clip((1.0 - v) / 0.1, 0, 1)
+    return _white(np.clip(line + glow + tick * 0.9, 0, 1) * fade)
+
+
 def mana_fluid(size: int = 64) -> np.ndarray:
     """Tileable swirling caustics used for the tank fill; scrolled by the block-entity renderer."""
     n1 = px.fbm(size, size, 4, 201, 3)
@@ -175,4 +217,5 @@ def build_all(assets):
     px.save(shell_runes(), v / "shell_runes.png")
     px.save(mana_fluid(), v / "mana_fluid.png")
     px.save(shell_soft(), v / "shell_soft.png")
-    px.save(ring_wave(256), v / "wave.png")
+    px.save(shell_facet(), v / "shell_facet.png")
+    px.save(ring_edge(), v / "ring_edge.png")

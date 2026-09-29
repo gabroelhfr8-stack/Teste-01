@@ -48,30 +48,36 @@ def crystal_item() -> np.ndarray:
     return img
 
 
-def mound_mask() -> np.ndarray:
+def mound() -> tuple[np.ndarray, np.ndarray]:
+    """Silhouette of a heap of powder: three straight-sided peaks of different slopes, like cut crystal scree.
+
+    Returns the mask and a +1/-1 map that marks which side of its peak each pixel lies on (used for facet shading).
+    """
     yy, xx = np.mgrid[0:S, 0:S].astype(np.float32)
     base = 27.0
-
-    def heap(cx, w, h, p=1.55):
-        u = np.clip(np.abs(xx - cx) / w, 0, 1)
-        top = base - h * (1 - u ** p) ** 0.8
-        return (yy >= top) & (yy <= base) & (np.abs(xx - cx) <= w)
-
-    m = heap(14.0, 11.0, 13.0) | heap(22.5, 7.0, 8.0, 1.8) | heap(8.5, 5.5, 6.0, 1.8)
-    # flatten the very bottom row into a soft base
-    return m
+    peaks = [(14.0, 11.0, 9.5, 13.0), (22.5, 6.0, 7.5, 8.0), (8.0, 6.5, 5.0, 7.0)]   # x, reach left, reach right, height
+    tops = []
+    for cx, left, right, h in peaks:
+        u = np.where(xx < cx, (cx - xx) / left, (xx - cx) / right)
+        tops.append(np.where(u <= 1.0, base - h * (1.0 - u), 1e3))
+    tops = np.stack(tops)
+    top = tops.min(axis=0)
+    mask = (yy >= top) & (yy <= base)
+    owner = tops.argmin(axis=0)
+    facet = np.where(xx < np.array([p[0] for p in peaks], dtype=np.float32)[owner], 1.0, -1.0).astype(np.float32)
+    return mask, facet
 
 
 def dust_item(kind: str, refined: bool) -> np.ndarray:
     ramp = pal.DUST_RAMPS[kind]
-    mask = mound_mask()
+    mask, facet = mound()
     yy, xx = np.mgrid[0:S, 0:S].astype(np.float32)
     # height-field lighting from the top-left
     top = np.where(mask, yy, 1e3)
     col_top = np.min(np.where(mask, yy, 1e3), axis=0)
     depth = np.where(mask, yy - col_top[None, :], 0.0)
     grain = px.fbm(S, S, 9, 91 + len(kind), 2, tile=False)
-    light = 0.78 - depth * 0.048 - (xx - 10.0) * 0.006 + (grain - 0.5) * 0.36
+    light = 0.78 - depth * 0.048 + facet * 0.10 + (grain - 0.5) * 0.36
     if refined:
         light += 0.14
     hi, lo = px.edge_light(mask.astype(np.float32))
