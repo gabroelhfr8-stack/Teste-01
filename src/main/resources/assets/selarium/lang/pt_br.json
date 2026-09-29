@@ -352,7 +352,6 @@
   "screen.selarium.codex.wards.title": "Proteções",
   "screen.selarium.codex.wards.p1": "Uma proteção é um campo contínuo. Cada ciclo paga manutenção e afeta alvos válidos dentro do alcance, respeitando limites de segurança.",
   "screen.selarium.codex.wards.p2": "As receitas abaixo mostram pureza mínima, alcance, manutenção e intervalo. Falta de poeira, mana, permissão ou tempo de espera impede a ativação.",
-  "screen.selarium.codex.ward.entry": "%s: %s. Alcance %s, manutenção %s a cada %s ticks.",
   "screen.selarium.codex.tanks.title": "Tanques de Mana",
   "screen.selarium.codex.tanks.p1": "Tanques adjacentes sustentam sigilos e rituais depois da reserva do sigilo. O nível de mana fica visível nas quatro faces.",
   "screen.selarium.codex.tanks.p2": "Campos de pergaminho também usam fontes de mana próximas e a mana do criador durante a manutenção.",
@@ -436,5 +435,7 @@
   "advancements.selarium.attunement_4.title": "Nascente",
   "advancements.selarium.attunement_4.description": "Sintonize-se a um limite de 10.000 de mana.",
   "advancements.selarium.all_wards.title": "Arquiteto de Barreiras",
-  "advancements.selarium.all_wards.description": "Descubra as 32 proteções."
+  "advancements.selarium.all_wards.description": "Descubra as 32 proteções.",
+  "screen.selarium.codex.atlas.title": "Atlas de Proteções",
+  "screen.selarium.codex.atlas.detail": "Receita: %s. Alcance %s, manutenção %s a cada %s ticks."
 }

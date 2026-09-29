@@ -221,25 +221,27 @@ public final class ClientSmokeTest {
         steps.add(new Step("codex dusts", "21_gui_codex_dusts", 6, mc -> pressRight(mc, 4)));
         steps.add(new Step("codex sigils", "22_gui_codex_sigils", 6, mc -> pressRight(mc, 1)));
         steps.add(new Step("codex wards", "23_gui_codex_wards", 6, mc -> pressRight(mc, 4)));
+        steps.add(new Step("codex atlas", "28_gui_codex_atlas", 10, mc -> {
+            pressRight(mc, 1);
+            int left = (mc.screen.width - 300) / 2 + 112;
+            int top = (mc.screen.height - 210) / 2 + 46;
+            mc.screen.mouseClicked(left + 3 * 22 + 5, top + 22 + 5, 0);
+        }));
         steps.add(new Step("grimoire", "24_gui_grimoire", 20, mc ->
                 SelariumClientHooks.openWardingGrimoire(WardingRuleSet.defaults(mc.player.getUUID()))));
-        steps.add(new Step("grinder", "25_gui_grinder", 20, mc -> {
-            mc.player.closeContainer();
-            openMenu(mc, -10, 16);
-        }));
-        steps.add(new Step("inscription bench", "26_gui_inscription", 20, mc -> {
-            mc.player.closeContainer();
-            openMenu(mc, 3, 16);
-        }));
-        steps.add(new Step("sigil", "27_gui_sigil", 20, mc -> {
-            mc.player.closeContainer();
-            openMenu(mc, -20, 0);
-        }));
-        steps.add(new Step("item catalog", "30_gui_item_catalog", 10, mc -> {
-            mc.player.closeContainer();
-            mc.setScreen(new CatalogScreen(catalog(mc), false));
-        }));
-        steps.add(new Step("item tooltips", "31_gui_tooltips", 10, mc -> mc.setScreen(new CatalogScreen(tooltipSamples(mc), true))));
+        steps.add(new Step("close screen", null, 10, mc -> mc.player.closeContainer()));
+        // a container must be fully closed on the server before the next one opens, or the late close packet shuts it
+        steps.add(new Step("grinder", "25_gui_grinder", 20, mc -> openMenu(mc, -10, 16)));
+        steps.add(new Step("close grinder", null, 10, mc -> mc.player.closeContainer()));
+        steps.add(new Step("inscription bench", "26_gui_inscription", 20, mc -> openMenu(mc, 3, 16)));
+        steps.add(new Step("close bench", null, 10, mc -> mc.player.closeContainer()));
+        steps.add(new Step("sigil", "27_gui_sigil", 20, mc -> openMenu(mc, -20, 0)));
+        steps.add(new Step("close sigil", null, 10, mc -> mc.player.closeContainer()));
+        steps.add(new Step("item catalog", "30_gui_item_catalog", 10, mc -> mc.setScreen(new CatalogScreen(catalog(mc), false))));
+        steps.add(new Step("scroll tooltips", "31_gui_tooltips_scrolls", 10, mc ->
+                mc.setScreen(new CatalogScreen(List.of(ScrollData.ward(mc.player, WardType.BANISHMENT), ScrollData.attunement(mc.player, 2)), true))));
+        steps.add(new Step("item tooltips", "32_gui_tooltips_items", 10, mc ->
+                mc.setScreen(new CatalogScreen(tooltipSamples(), true))));
         steps.add(new Step("close", null, 10, mc -> mc.player.closeContainer()));
         return steps;
     }
@@ -273,8 +275,8 @@ public final class ClientSmokeTest {
         return stacks;
     }
 
-    private static List<ItemStack> tooltipSamples(Minecraft mc) {
-        return List.of(ScrollData.ward(mc.player, WardType.BANISHMENT), ScrollData.attunement(mc.player, 2),
+    private static List<ItemStack> tooltipSamples() {
+        return List.of(
                 new ItemStack(ForgeRegistries.ITEMS.getValue(ResourceLocation.fromNamespaceAndPath(Selarium.MOD_ID, "refined_focus_dust"))),
                 new ItemStack(SelariumItems.SELARIUM_CODEX.get()));
     }
@@ -295,7 +297,7 @@ public final class ClientSmokeTest {
             graphics.fill(0, 0, width, height, 0xFF1B1626);
             if (tooltips) {
                 for (int i = 0; i < stacks.size(); i++) {
-                    graphics.renderTooltip(font, stacks.get(i), 8 + (i % 2) * (width / 2), 8 + (i / 2) * (height / 2));
+                    graphics.renderTooltip(font, stacks.get(i), 20 + (i % 2) * 210, 70);
                 }
                 return;
             }

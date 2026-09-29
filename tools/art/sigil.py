@@ -595,10 +595,23 @@ def make_base_circle(size: int = 256) -> np.ndarray:
     return img
 
 
+def small_icon(img, size: int = 32):
+    """White silhouette of a glyph at GUI size; only alpha is resampled so no dark fringes appear."""
+    from PIL import Image
+    alpha = Image.fromarray((np.clip(img[..., 3], 0, 1) * 255 + 0.5).astype(np.uint8), "L").resize((size, size), Image.LANCZOS)
+    out = px.blank(size)
+    out[..., :3] = 1.0
+    out[..., 3] = np.asarray(alpha, dtype=np.float32) / 255.0
+    return out
+
+
 def build_all(assets: "px.Path") -> None:
     base = assets / "textures" / "vfx" / "sigil"
     for name in WARD_ORDER + ["incomplete"]:
-        px.save(make_glyph(name), base / "glyph" / f"{name}.png")
+        glyph = make_glyph(name)
+        px.save(glyph, base / "glyph" / f"{name}.png")
+        if name != "incomplete":
+            px.save(small_icon(glyph), assets / "textures" / "gui" / "ward_glyph" / f"{name}.png")
     for name in DUST_ORDER:
         px.save(make_component(name), base / "component" / f"{name}.png")
     px.save(make_ring_outer(), base / "ring_outer.png")

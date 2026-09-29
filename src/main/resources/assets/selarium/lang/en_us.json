@@ -352,7 +352,6 @@
   "screen.selarium.codex.wards.title": "Wards",
   "screen.selarium.codex.wards.p1": "A ward is a continuous field. Each cycle pays upkeep and affects valid targets within range, subject to safety limits.",
   "screen.selarium.codex.wards.p2": "Recipes below show minimum purity, range, upkeep and interval. Missing dust, mana, permission or cooldown prevents activation.",
-  "screen.selarium.codex.ward.entry": "%s: %s. Range %s, upkeep %s every %s ticks.",
   "screen.selarium.codex.tanks.title": "Mana Tanks",
   "screen.selarium.codex.tanks.p1": "Adjacent tanks sustain sigils and rituals after the sigil reserve. Mana fill is visible on all four sides.",
   "screen.selarium.codex.tanks.p2": "Scroll fields also use nearby mana sources and their creator's mana for upkeep.",
@@ -436,5 +435,7 @@
   "advancements.selarium.attunement_4.title": "Wellspring",
   "advancements.selarium.attunement_4.description": "Attune to a mana limit of 10,000.",
   "advancements.selarium.all_wards.title": "Architect of Barriers",
-  "advancements.selarium.all_wards.description": "Discover all 32 wards."
+  "advancements.selarium.all_wards.description": "Discover all 32 wards.",
+  "screen.selarium.codex.atlas.title": "Ward Atlas",
+  "screen.selarium.codex.atlas.detail": "Recipe: %s. Range %s, upkeep %s every %s ticks."
 }

@@ -91,20 +91,29 @@ public class WardingGrimoireScreen extends Screen {
     }
 
     private void addTabs(int left, int top, int panelWidth) {
-        int tabCount = Tab.values().length;
-        int tabWidth = (panelWidth - 28) / tabCount;
+        Tab[] tabs = Tab.values();
+        int[] widths = new int[tabs.length];
+        int total = 0;
+        for (int i = 0; i < tabs.length; i++) {
+            widths[i] = font.width(tabs[i].label()) + 12;
+            total += widths[i];
+        }
+        // share the leftover room (or the shortfall) so the row always spans the panel and no label is clipped
+        int share = Math.floorDiv(panelWidth - 28 - total, tabs.length);
         int x = left + 14;
-        for (Tab tab : Tab.values()) {
+        for (int i = 0; i < tabs.length; i++) {
+            Tab tab = tabs[i];
+            int width = Math.max(28, widths[i] + share);
             Button button = WorkshopButton.builder(tab.label(), clicked -> {
                         activeTab = tab;
                         feedback = Component.empty();
                         rebuildGrimoireWidgets();
                     })
-                    .bounds(x, top + 28, tabWidth - 2, 18)
+                    .bounds(x, top + 28, width - 2, 18)
                     .build();
             if (button instanceof WorkshopButton workshopButton) workshopButton.selected(activeTab == tab);
             addRenderableWidget(button);
-            x += tabWidth;
+            x += width;
         }
     }
 
