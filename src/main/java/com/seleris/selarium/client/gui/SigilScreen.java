@@ -1,5 +1,6 @@
 package com.seleris.selarium.client.gui;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.seleris.selarium.Selarium;
 import com.seleris.selarium.dust.DustDefinition;
 import com.seleris.selarium.dust.DustUtil;
@@ -51,6 +52,9 @@ public final class SigilScreen extends AbstractContainerScreen<SigilMenu> {
         WorkshopUi.parchment(g, x + 143, y + 29, 147, 108);
         WorkshopUi.parchment(g, x + 10, y + 143, 280, 81);
 
+        // the soft edges baked into these textures only show with blending on
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
         g.blit(BASE, x + 42, y + 51, 64, 64, 0.0F, 0.0F, 256, 256, 256, 256);
         var sigil = menu.sigil();
         if (sigil != null && sigil.getWardType() != WardType.NONE) {

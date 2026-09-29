@@ -209,7 +209,7 @@ public final class WardShellRenderer {
             return;
         }
         float pulse = 0.78F + 0.22F * Mth.sin(time * 0.08F);
-        int alpha = VfxDraw.alpha(0.85F * pulse * Math.min(1.0F, opacity));
+        int alpha = VfxDraw.alpha(0.68F * pulse * Math.min(1.0F, opacity));
         if (alpha <= 1) {
             return;
         }

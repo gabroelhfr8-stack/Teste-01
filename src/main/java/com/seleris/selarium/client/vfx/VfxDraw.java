@@ -93,6 +93,30 @@ public final class VfxDraw {
         SelariumRenderUtil.vertex(consumer, matrix, normal, -halfWidth, height, 0.0F, 0.0F, 0.0F, light, r, g, b, alpha, 0.0F, 0.0F, 1.0F);
     }
 
+    /** A triangle whose three corners have their own alpha (0-255), so a flat facet can carry a soft gradient. */
+    public static void shadedTriangle(VertexConsumer consumer, PoseStack.Pose pose,
+                                      float ax, float ay, float az, float au, float av, int aa,
+                                      float bx, float by, float bz, float bu, float bv, int ba,
+                                      float cx, float cy, float cz, float cu, float cv, int ca,
+                                      int rgb, int light) {
+        Matrix4f matrix = pose.pose();
+        Matrix3f normalMatrix = pose.normal();
+        float ux = bx - ax, uy = by - ay, uz = bz - az;
+        float vx = cx - ax, vy = cy - ay, vz = cz - az;
+        float nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx;
+        float length = (float) Math.sqrt(nx * nx + ny * ny + nz * nz);
+        if (length > 1.0E-6F) {
+            nx /= length;
+            ny /= length;
+            nz /= length;
+        }
+        int r = red(rgb), g = green(rgb), b = blue(rgb);
+        SelariumRenderUtil.vertex(consumer, matrix, normalMatrix, ax, ay, az, au, av, light, r, g, b, aa, nx, ny, nz);
+        SelariumRenderUtil.vertex(consumer, matrix, normalMatrix, bx, by, bz, bu, bv, light, r, g, b, ba, nx, ny, nz);
+        SelariumRenderUtil.vertex(consumer, matrix, normalMatrix, cx, cy, cz, cu, cv, light, r, g, b, ca, nx, ny, nz);
+        SelariumRenderUtil.vertex(consumer, matrix, normalMatrix, cx, cy, cz, cu, cv, light, r, g, b, ca, nx, ny, nz);
+    }
+
     /** One triangle, emitted as a degenerate quad so it works with the QUADS render types. */
     public static void triangle(VertexConsumer consumer, PoseStack.Pose pose,
                                 float ax, float ay, float az, float au, float av,

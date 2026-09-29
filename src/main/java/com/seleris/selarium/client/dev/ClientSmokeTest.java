@@ -243,7 +243,7 @@ public final class ClientSmokeTest {
         steps.add(new Step("grinders close", "21_grinders_close_day", 40, camera(-9, 1.7, 18.6, -9, 0.7, 16)));
         steps.add(new Step("tanks close", "22_tanks_close_day", 40, camera(-3, 1.6, 18.4, -3, 0.7, 16)));
         steps.add(new Step("crystals and materials", "16_materials_day", 40, camera(0, 2.4, 24, 0, 0.6, 20)));
-        steps.add(new Step("geode sample (day)", "35_geode_sample_day", 40, camera(30, 6, 12, 24, 3, 26)));
+        steps.add(new Step("geode sample (day)", "35_geode_sample_day", 40, camera(31, 6, -36, 26, 3, -22)));
         steps.add(new Step("hud", "17_hud_day", 40, mc -> {
             mc.options.hideGui = false;
             camera(-5, 2.6, 22.5, -5, 0.8, 16).run(mc);
@@ -473,7 +473,7 @@ public final class ClientSmokeTest {
             }
             put(level, -10 + i, 20, state);
         }
-        buildGeodeSample(level, 24, base + 3, 26);
+        buildGeodeSample(level, 26, base + 3, -24);
         LOGGER.info("SMOKE stage built at y={}", base);
     }
 

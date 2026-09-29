@@ -22,7 +22,7 @@ public final class InscriptionScreen extends AbstractContainerScreen<Inscription
         titleLabelX = 13;
         titleLabelY = 10;
         inventoryLabelX = 71;
-        inventoryLabelY = 141;
+        inventoryLabelY = 142;
     }
 
     @Override public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
@@ -105,7 +105,7 @@ public final class InscriptionScreen extends AbstractContainerScreen<Inscription
                 recipe.milestone().distinct(), recipe.milestone().refined())
                 : Component.translatable("gui.selarium.inscription.field", recipe.ward().range(),
                 recipe.ward().upkeepCostValue(), Math.max(1, recipe.ward().durationTicks() / 40));
-        WorkshopUi.smallText(g, font, detail, 12, 135, 276, WorkshopUi.MUTED);
+        WorkshopUi.smallText(g, font, detail, 12, 133, 276, WorkshopUi.MUTED);
     }
 
     @Override public boolean mouseClicked(double mouseX, double mouseY, int button) {
