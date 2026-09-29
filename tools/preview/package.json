@@ -1,0 +1,11 @@
+{
+  "name": "selarium-model-preview",
+  "private": true,
+  "description": "Renders Minecraft block/item JSON models to PNG contact sheets (headless Chromium + three.js). Requires Playwright (global or local) with its Chromium build.",
+  "scripts": {
+    "preview": "node render.cjs"
+  },
+  "dependencies": {
+    "three": "^0.160.0"
+  }
+}

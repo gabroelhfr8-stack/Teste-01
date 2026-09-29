@@ -40,3 +40,19 @@ jobs:
           name: selarium-jar
           path: build/libs/*.jar
           if-no-files-found: error
+      - name: GameTests (headless server)
+        run: ./gradlew runGameTestServer --no-daemon --stacktrace
+      - name: Server log summary
+        if: always()
+        run: |
+          echo "----- ERROR/WARN/FATAL lines -----"
+          grep -E "/(ERROR|WARN|FATAL)\]" run/logs/latest.log | head -150 || true
+          echo "----- tail -----"
+          tail -80 run/logs/latest.log || true
+      - name: Upload run logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: run-logs
+          path: run/logs/
+          if-no-files-found: ignore

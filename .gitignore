@@ -10,3 +10,8 @@
 *.iml
 *.ipr
 *.iws
+
+# tools
+/tools/preview/node_modules/
+__pycache__/
+*.pyc

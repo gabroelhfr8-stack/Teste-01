@@ -1,0 +1,225 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Selarium model preview</title>
+<style>html,body{margin:0;background:#26262e}canvas{display:block}</style>
+<script type="importmap">{"imports":{"three":"/tools/preview/node_modules/three/build/three.module.js"}}</script>
+</head>
+<body>
+<canvas id="gl"></canvas>
+<script type="module">
+import * as THREE from 'three';
+
+const ASSETS = '/src/main/resources/assets/selarium';
+const SHADE = { down: 0.5, up: 1.0, north: 0.8, south: 0.8, west: 0.6, east: 0.6 };
+
+// Vertex layout of every face, exactly as Minecraft's FaceInfo (index -> x/y/z selector).
+const FACE_VERTS = {
+  down:  [['x0','y0','z1'],['x0','y0','z0'],['x1','y0','z0'],['x1','y0','z1']],
+  up:    [['x0','y1','z0'],['x0','y1','z1'],['x1','y1','z1'],['x1','y1','z0']],
+  north: [['x1','y1','z0'],['x1','y0','z0'],['x0','y0','z0'],['x0','y1','z0']],
+  south: [['x0','y1','z1'],['x0','y0','z1'],['x1','y0','z1'],['x1','y1','z1']],
+  west:  [['x0','y1','z0'],['x0','y0','z0'],['x0','y0','z1'],['x0','y1','z1']],
+  east:  [['x1','y1','z1'],['x1','y0','z1'],['x1','y0','z0'],['x1','y1','z0']],
+};
+const NORMALS = { down:[0,-1,0], up:[0,1,0], north:[0,0,-1], south:[0,0,1], west:[-1,0,0], east:[1,0,0] };
+
+function defaultUv(face, f, t) {
+  switch (face) {
+    case 'down':  return [f[0], 16 - t[2], t[0], 16 - f[2]];
+    case 'up':    return [f[0], f[2], t[0], t[2]];
+    case 'north': return [16 - t[0], 16 - t[1], 16 - f[0], 16 - f[1]];
+    case 'south': return [f[0], 16 - t[1], t[0], 16 - f[1]];
+    case 'west':  return [f[2], 16 - t[1], t[2], 16 - f[1]];
+    default:      return [16 - t[2], 16 - t[1], 16 - f[2], 16 - f[1]];
+  }
+}
+
+const VANILLA = {
+  'block/block': { display: {
+    gui: { rotation: [30,225,0], translation: [0,0,0], scale: [0.625,0.625,0.625] },
+    ground: { rotation: [0,0,0], translation: [0,3,0], scale: [0.25,0.25,0.25] },
+    fixed: { rotation: [0,0,0], translation: [0,0,0], scale: [0.5,0.5,0.5] },
+    thirdperson_righthand: { rotation: [75,45,0], translation: [0,2.5,0], scale: [0.375,0.375,0.375] },
+    firstperson_righthand: { rotation: [0,45,0], translation: [0,0,0], scale: [0.4,0.4,0.4] },
+  }},
+  'block/cube_all': { parent: 'block/block', elements: [{ from:[0,0,0], to:[16,16,16], faces:
+    Object.fromEntries(['down','up','north','south','west','east'].map(d => [d, { texture: '#all' }])) }] },
+  'block/cube_column': { parent: 'block/block', elements: [{ from:[0,0,0], to:[16,16,16], faces: {
+    down:{texture:'#end'}, up:{texture:'#end'}, north:{texture:'#side'}, south:{texture:'#side'}, west:{texture:'#side'}, east:{texture:'#side'} }}] },
+  'block/leaves': { parent: 'block/cube_all' },
+  'block/cross': { parent: 'block/block', elements: [
+    { from:[0.8,0,8], to:[15.2,16,8], rotation:{origin:[8,8,8],axis:'y',angle:45,rescale:true}, shade:false,
+      faces:{north:{uv:[0,0,16,16],texture:'#cross'},south:{uv:[0,0,16,16],texture:'#cross'}} },
+    { from:[8,0,0.8], to:[8,16,15.2], rotation:{origin:[8,8,8],axis:'y',angle:45,rescale:true}, shade:false,
+      faces:{west:{uv:[0,0,16,16],texture:'#cross'},east:{uv:[0,0,16,16],texture:'#cross'}} }] },
+  'item/generated': { display: {
+    gui: { rotation: [0,0,0], translation: [0,0,0], scale: [1,1,1] } } },
+};
+
+const cache = new Map();
+async function fetchJson(url) {
+  if (cache.has(url)) return cache.get(url);
+  const r = await fetch(url);
+  if (!r.ok) throw new Error(`${url}: ${r.status}`);
+  const j = await r.json();
+  cache.set(url, j);
+  return j;
+}
+
+function normalizeId(id) { return id.startsWith('minecraft:') ? id.slice(10) : id; }
+
+async function loadModel(id) {
+  const bare = normalizeId(id);
+  if (VANILLA[bare]) return structuredClone(VANILLA[bare]);
+  const path = bare.startsWith('selarium:') ? bare.slice(9) : bare;
+  return structuredClone(await fetchJson(`${ASSETS}/models/${path}.json`));
+}
+
+async function resolveModel(id) {
+  const model = await loadModel(id);
+  if (!model.parent) return model;
+  const parent = await resolveModel(model.parent);
+  return {
+    textures: { ...(parent.textures || {}), ...(model.textures || {}) },
+    elements: model.elements ?? parent.elements ?? [],
+    display: { ...(parent.display || {}), ...(model.display || {}) },
+  };
+}
+
+const textureCache = new Map();
+function placeholderTexture() {
+  const c = document.createElement('canvas'); c.width = c.height = 16;
+  const g = c.getContext('2d');
+  for (let y = 0; y < 2; y++) for (let x = 0; x < 2; x++) { g.fillStyle = (x + y) % 2 ? '#000' : '#f0f'; g.fillRect(x*8, y*8, 8, 8); }
+  const t = new THREE.CanvasTexture(c); t.magFilter = THREE.NearestFilter; t.minFilter = THREE.NearestFilter; t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+async function loadTexture(ref) {
+  if (textureCache.has(ref)) return textureCache.get(ref);
+  let tex;
+  if (ref.startsWith('minecraft:') || !ref.includes(':') && !ref.startsWith('selarium')) {
+    tex = placeholderTexture();
+  } else {
+    const path = ref.replace('selarium:', '');
+    tex = await new Promise((resolve) => {
+      new THREE.TextureLoader().load(`${ASSETS}/textures/${path}.png`, (t) => resolve(t), undefined, () => resolve(placeholderTexture()));
+    });
+    tex.magFilter = THREE.NearestFilter; tex.minFilter = THREE.NearestFilter; tex.colorSpace = THREE.SRGBColorSpace;
+  }
+  textureCache.set(ref, tex);
+  return tex;
+}
+
+function lookupTexture(textures, ref) {
+  let cur = ref, guard = 0;
+  while (cur && cur.startsWith('#') && guard++ < 16) cur = textures[cur.slice(1)];
+  return cur && !cur.startsWith('#') ? cur : null;
+}
+
+async function buildModel(id, opts = {}) {
+  const model = await resolveModel(id);
+  const group = new THREE.Group();
+  const byTexture = new Map(); // texture ref -> {pos, uv, col, idx}
+  for (const el of model.elements) {
+    const f = el.from, t = el.to;
+    const sel = { x0: f[0], y0: f[1], z0: f[2], x1: t[0], y1: t[1], z1: t[2] };
+    for (const [face, data] of Object.entries(el.faces || {})) {
+      const texRef = lookupTexture(model.textures, data.texture);
+      if (!texRef) continue;
+      const uv = data.uv ?? defaultUv(face, f, t);
+      const rot = ((data.rotation ?? 0) % 360 + 360) % 360;
+      let bucket = byTexture.get(texRef);
+      if (!bucket) { bucket = { pos: [], uv: [], col: [], idx: [] }; byTexture.set(texRef, bucket); }
+      const base = bucket.pos.length / 3;
+      const shade = el.shade === false ? 1.0 : SHADE[face];
+      for (let i = 0; i < 4; i++) {
+        const s = FACE_VERTS[face][i];
+        let p = new THREE.Vector3(sel[s[0]], sel[s[1]], sel[s[2]]);
+        if (el.rotation) {
+          const o = el.rotation.origin ?? [8,8,8];
+          const axis = new THREE.Vector3(el.rotation.axis === 'x' ? 1 : 0, el.rotation.axis === 'y' ? 1 : 0, el.rotation.axis === 'z' ? 1 : 0);
+          p.sub(new THREE.Vector3(...o)).applyAxisAngle(axis, THREE.MathUtils.degToRad(el.rotation.angle)).add(new THREE.Vector3(...o));
+        }
+        bucket.pos.push(p.x - 8, p.y - 8, p.z - 8);
+        const k = (i + rot / 90) % 4;
+        const u = uv[k !== 0 && k !== 1 ? 2 : 0];
+        const v = uv[k !== 0 && k !== 3 ? 3 : 1];
+        bucket.uv.push(u / 16, 1 - v / 16);
+        bucket.col.push(shade, shade, shade);
+      }
+      bucket.idx.push(base, base + 1, base + 2, base, base + 2, base + 3);
+    }
+  }
+  for (const [ref, b] of byTexture) {
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(b.pos, 3));
+    geo.setAttribute('uv', new THREE.Float32BufferAttribute(b.uv, 2));
+    geo.setAttribute('color', new THREE.Float32BufferAttribute(b.col, 3));
+    geo.setIndex(b.idx);
+    const tex = await loadTexture(ref);
+    const mat = new THREE.MeshBasicMaterial({ map: tex, vertexColors: true, transparent: true, alphaTest: 0.05, side: THREE.DoubleSide });
+    group.add(new THREE.Mesh(geo, mat));
+  }
+  return { group, display: model.display };
+}
+
+const VIEWS = {
+  gui: { rot: [30, 225, 0], scale: 0.625 },
+  front: { rot: [0, 180, 0], scale: 0.625 },   // looking at the south face; use rot Y=0 to see north
+  north: { rot: [0, 0, 0], scale: 0.625 },
+  top: { rot: [90, 0, 0], scale: 0.625 },
+  gui2: { rot: [30, 45, 0], scale: 0.625 },
+};
+
+window.renderSheet = async (specs, cell, cols, view) => {
+  const rows = Math.ceil(specs.length / cols);
+  const pad = 8, label = 22;
+  const sheet = document.createElement('canvas');
+  sheet.width = cols * (cell + pad) + pad; sheet.height = rows * (cell + label + pad) + pad;
+  const g = sheet.getContext('2d');
+  g.fillStyle = '#26262e'; g.fillRect(0, 0, sheet.width, sheet.height);
+  g.font = '13px monospace'; g.textBaseline = 'top';
+
+  const canvas = document.getElementById('gl');
+  canvas.width = cell; canvas.height = cell;
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, alpha: true, preserveDrawingBuffer: true });
+  renderer.setSize(cell, cell, false);
+  renderer.setClearColor(0x3a3a46, 1);
+  const half = 13.5;
+  const camera = new THREE.OrthographicCamera(-half, half, half, -half, -100, 100);
+  camera.position.set(0, 0, 40); camera.lookAt(0, 0, 0);
+
+  for (let i = 0; i < specs.length; i++) {
+    const spec = specs[i];
+    const scene = new THREE.Scene();
+    try {
+      const { group, display } = await buildModel(spec.model);
+      const v = VIEWS[spec.view || view] ?? VIEWS.gui;
+      let rot = v.rot, scale = v.scale, tr = [0, 0, 0];
+      if ((spec.view || view) === 'gui' && display && display.gui) {
+        rot = display.gui.rotation ?? rot; scale = (display.gui.scale ?? [scale])[0]; tr = display.gui.translation ?? tr;
+      }
+      const holder = new THREE.Group();
+      holder.add(group);
+      holder.scale.setScalar(scale);
+      holder.rotation.order = 'XYZ'; // three's XYZ == matrix Rx * Ry * Rz == Minecraft rotationXYZ
+      holder.rotation.set(THREE.MathUtils.degToRad(rot[0]), THREE.MathUtils.degToRad(rot[1]), THREE.MathUtils.degToRad(rot[2]));
+      // scale/rotate about the model centre, then translate (1/16 block units -> model units)
+      holder.position.set(tr[0], tr[1], tr[2]);
+      scene.add(holder);
+      renderer.render(scene, camera);
+      g.drawImage(canvas, pad + (i % cols) * (cell + pad), pad + Math.floor(i / cols) * (cell + label + pad));
+    } catch (e) {
+      g.fillStyle = '#f66'; g.fillText('ERR ' + e.message, pad + (i % cols) * (cell + pad), pad + Math.floor(i / cols) * (cell + label + pad));
+    }
+    g.fillStyle = '#e8e8f0';
+    g.fillText(spec.label || spec.model, pad + (i % cols) * (cell + pad), pad + Math.floor(i / cols) * (cell + label + pad) + cell + 4);
+  }
+  return sheet.toDataURL('image/png');
+};
+window.previewReady = true;
+</script>
+</body>
+</html>

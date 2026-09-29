@@ -39,10 +39,17 @@ minecraft {
         }
 
         client {
+            property 'forge.enabledGameTestNamespaces', 'selarium'
         }
 
         server {
+            property 'forge.enabledGameTestNamespaces', 'selarium'
             args '--nogui'
+        }
+
+        // Headless server that runs every registered GameTest and exits (used by CI).
+        gameTestServer {
+            property 'forge.enabledGameTestNamespaces', 'selarium'
         }
     }
 }
