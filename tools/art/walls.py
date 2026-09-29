@@ -51,6 +51,28 @@ def citadel_wall(frames_n: int = 8) -> list[np.ndarray]:
     return frames
 
 
+def citadel_glow(frames_n: int = 8) -> list[np.ndarray]:
+    """Only the glowing seams of the citadel wall (the rest transparent), drawn as an emissive overlay."""
+    yy, xx = np.mgrid[0:S, 0:S]
+    seam = np.zeros((S, S), dtype=bool)
+    for r in range(4):
+        seam[r * 8, :] = True
+        off = 0 if r % 2 == 0 else 8
+        for bx in range(2):
+            seam[r * 8:r * 8 + 8, (bx * 16 + off) % S] = True
+    frames = []
+    for f in range(frames_n):
+        phase = f / frames_n * 2 * math.pi
+        wave = 0.5 + 0.5 * np.sin((xx + yy) / S * 2 * math.pi - phase)
+        glow = np.clip(0.35 + 0.65 * wave, 0, 1)
+        idx = np.clip((glow * 5).astype(int), 0, len(pal.CYAN) - 1)
+        img = px.blank(S)
+        img[..., :3] = pal.CYAN[np.clip(idx + 1, 0, len(pal.CYAN) - 1)]
+        img[..., 3] = seam.astype(np.float32)
+        frames.append(img)
+    return frames
+
+
 def barrier(frames_n: int = 16) -> list[np.ndarray]:
     """Translucent violet force field: scrolling hex lattice with drifting sparkles."""
     rng = np.random.default_rng(93)
@@ -128,6 +150,7 @@ def lit_variants():
 
 def build_all(assets):
     _save_animated(assets, "temporary_citadel_wall", citadel_wall(), 4)
+    _save_animated(assets, "temporary_citadel_wall_glow", citadel_glow(), 4)
     _save_animated(assets, "tangible_barrier_block", barrier(), 2, True)
     px.save(phasing_block(), assets / "textures" / "block" / "phasing_block.png")
     panel, crystal = lit_variants()

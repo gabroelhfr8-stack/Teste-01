@@ -19,8 +19,8 @@ public final class PhasingWardEffect extends ConfiguredWardEffect {
     protected void apply(WardContext context, SelariumCommonConfig.MvpWardConfig config) {
         int duration = Math.max(20, config.effectDurationTicks().get());
         WardEffectUtils.applyOwnerEffect(context, config.range().get(), config.manaCost().get(), MobEffects.MOVEMENT_SPEED, duration, 0, owner -> {
-            owner.addEffect(new MobEffectInstance(MobEffects.DIG_SPEED, duration, 0, false, true, true));
-            owner.addEffect(new MobEffectInstance(MobEffects.SLOW_FALLING, duration, 0, false, true, true));
+            owner.addEffect(new MobEffectInstance(MobEffects.DIG_SPEED, duration, 0, true, true, true));
+            owner.addEffect(new MobEffectInstance(MobEffects.SLOW_FALLING, duration, 0, true, true, true));
             if (context.level().getGameTime() % 40 == 0) {
                 owner.displayClientMessage(Component.translatable("message.selarium.phasing.available"), true);
             }

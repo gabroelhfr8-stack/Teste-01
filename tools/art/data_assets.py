@@ -14,7 +14,19 @@ def build_all(assets: Path):
     models = assets / "models" / "block"
     states = assets / "blockstates"
     # temporary ward blocks
-    w(models / "temporary_citadel_wall.json", {"parent": "minecraft:block/cube_all", "textures": {"all": "selarium:block/temporary_citadel_wall"}})
+    # base cube plus an emissive overlay that carries only the glowing seams (visible at night)
+    dirs = ("down", "up", "north", "south", "west", "east")
+    w(models / "temporary_citadel_wall.json", {
+        "render_type": "minecraft:cutout",
+        "textures": {"all": "selarium:block/temporary_citadel_wall", "glow": "selarium:block/temporary_citadel_wall_glow",
+                     "particle": "selarium:block/temporary_citadel_wall"},
+        "elements": [
+            {"from": [0, 0, 0], "to": [16, 16, 16],
+             "faces": {d: {"texture": "#all", "cullface": d} for d in dirs}},
+            {"from": [-0.01, -0.01, -0.01], "to": [16.01, 16.01, 16.01],
+             "faces": {d: {"texture": "#glow", "cullface": d, "forge_data": {"block_light": 15, "sky_light": 15}} for d in dirs}},
+        ],
+    })
     w(models / "tangible_barrier_block.json", {"parent": "minecraft:block/cube_all", "textures": {"all": "selarium:block/tangible_barrier_block"}})
     w(states / "temporary_citadel_wall.json", {"variants": {"": {"model": "selarium:block/temporary_citadel_wall"}}})
     w(states / "tangible_barrier_block.json", {"variants": {"": {"model": "selarium:block/tangible_barrier_block"}}})

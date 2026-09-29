@@ -19,10 +19,10 @@ public final class AqualungWardEffect extends ConfiguredWardEffect {
         WardEffectUtils.applyOwnerEffect(context, config.range().get(), config.manaCost().get(), MobEffects.WATER_BREATHING,
                 config.effectDurationTicks().get(), 0, owner -> {
                     if (config.optionA().get()) {
-                        owner.addEffect(new MobEffectInstance(MobEffects.DOLPHINS_GRACE, config.effectDurationTicks().get(), 0, false, true, true));
+                        owner.addEffect(new MobEffectInstance(MobEffects.DOLPHINS_GRACE, config.effectDurationTicks().get(), 0, true, true, true));
                     }
                     if (config.optionB().get()) {
-                        owner.addEffect(new MobEffectInstance(MobEffects.CONDUIT_POWER, config.effectDurationTicks().get(), 0, false, true, true));
+                        owner.addEffect(new MobEffectInstance(MobEffects.CONDUIT_POWER, config.effectDurationTicks().get(), 0, true, true, true));
                     }
                     owner.setAirSupply(owner.getMaxAirSupply());
                     context.sigil().recordWardDebug(1, 0, "owner breathing restored");

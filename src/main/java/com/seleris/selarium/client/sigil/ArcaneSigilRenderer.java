@@ -104,12 +104,13 @@ public class ArcaneSigilRenderer implements BlockEntityRenderer<ArcaneSigilBlock
         float pulse = 0.5F + 0.5F * Mth.sin(time * 0.09F + phase);
         float lift = activation * 0.05F + (animate ? Mth.sin(time * 0.11F + phase) * 0.008F * activation : 0.0F);
         float y = BASE_Y + lift;
-        int lit = activation > 0.15F ? LightTexture.FULL_BRIGHT : packedLight;
+        int dustLight = glowing(packedLight);
+        int lit = activation > 0.15F ? LightTexture.FULL_BRIGHT : dustLight;
         int layer = 0;
 
         // 1. chalk base
         VfxDraw.groundQuad(buffers.getBuffer(SelariumRenderTypes.decal(BASE)), poseStack, 0.5F, y, 0.0F, 0xFFFFFF,
-                VfxDraw.alpha(0.93F), packedLight);
+                VfxDraw.alpha(0.93F), dustLight);
 
         // 2. dust component marks around the ring
         if (!marks.isEmpty()) {
@@ -254,6 +255,11 @@ public class ArcaneSigilRenderer implements BlockEntityRenderer<ArcaneSigilBlock
     }
 
     // ---------------------------------------------------------------------------- helpers
+    /** Sigil dust glows faintly, so a drawn circle stays readable at night and in caves. */
+    private static int glowing(int packedLight) {
+        return LightTexture.pack(Math.max(LightTexture.block(packedLight), 6), Math.max(LightTexture.sky(packedLight), 2));
+    }
+
     private static ResourceLocation glyphTexture(String name) {
         return tex("vfx/sigil/glyph/" + name + ".png");
     }

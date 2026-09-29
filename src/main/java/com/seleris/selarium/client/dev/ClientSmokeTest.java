@@ -11,7 +11,9 @@ import com.seleris.selarium.dust.DustDefinition;
 import com.seleris.selarium.dust.DustPurity;
 import com.seleris.selarium.dust.DustType;
 import com.seleris.selarium.grimoire.WardingRuleSet;
+import com.seleris.selarium.inscription.ScrollData;
 import com.seleris.selarium.registry.SelariumBlocks;
+import com.seleris.selarium.registry.SelariumItems;
 import com.seleris.selarium.ward.WardDefinition;
 import com.seleris.selarium.ward.WardDefinitions;
 import com.seleris.selarium.ward.WardProjectionSavedData;
@@ -19,9 +21,13 @@ import com.seleris.selarium.ward.WardRequirement;
 import com.seleris.selarium.ward.WardType;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Screenshot;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -30,6 +36,7 @@ import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.GameType;
@@ -47,6 +54,7 @@ import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.network.NetworkHooks;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;
 
@@ -189,7 +197,9 @@ public final class ClientSmokeTest {
         steps.add(new Step("banishment (night)", "06_banishment_night", 60, camera(6, 3.5, 7, 0, 1.5, 0)));
         steps.add(new Step("soft shell (night)", "07_soft_shell_night", 60, camera(-13, 3.5, -19, -20, 2, -26)));
         steps.add(new Step("runes shell (night)", "08_runes_shell_night", 60, camera(7, 3.5, -19, 0, 2, -26)));
+        steps.add(new Step("sigil close-up (night)", "19_sigil_closeup_night", 40, camera(-18.6, 1.5, 1.7, -20, 0.4, 0)));
         steps.add(new Step("citadel (night)", "09_citadel_night", 60, camera(20, 9, -22, 20, 4, 0)));
+        steps.add(new Step("tangible barrier (night)", "20_tangible_night", 60, camera(-26, 3, 28, -26, 2, 22)));
         steps.add(new Step("wards overview (night)", "10_overview_night", 60, camera(0, 22, -46, 0, 1, 2)));
         steps.add(new Step("workshop (night)", "11_workshop_night", 60, camera(-3, 8, 32, -3, 1, 16)));
         steps.add(new Step("inactive sigil (night)", "12_inactive_sigil_night", 40, camera(-3, 1.9, 13.6, -3, 0, 11)));
@@ -198,6 +208,8 @@ public final class ClientSmokeTest {
         steps.add(new Step("workshop (day)", "13_workshop_day", 80, camera(-3, 8, 32, -3, 1, 16)));
         steps.add(new Step("inactive sigil (day)", "14_inactive_sigil_day", 40, camera(-3, 1.9, 13.6, -3, 0, 11)));
         steps.add(new Step("machines close", "15_machines_close_day", 40, camera(-5, 2.6, 22.5, -5, 0.8, 16)));
+        steps.add(new Step("grinders close", "21_grinders_close_day", 40, camera(-9, 1.7, 18.6, -9, 0.7, 16)));
+        steps.add(new Step("tanks close", "22_tanks_close_day", 40, camera(-3, 1.6, 18.4, -3, 0.7, 16)));
         steps.add(new Step("crystals and materials", "16_materials_day", 40, camera(0, 2.4, 24, 0, 0.6, 20)));
         steps.add(new Step("hud", "17_hud_day", 40, mc -> {
             mc.options.hideGui = false;
@@ -223,6 +235,11 @@ public final class ClientSmokeTest {
             mc.player.closeContainer();
             openMenu(mc, -20, 0);
         }));
+        steps.add(new Step("item catalog", "30_gui_item_catalog", 10, mc -> {
+            mc.player.closeContainer();
+            mc.setScreen(new CatalogScreen(catalog(mc), false));
+        }));
+        steps.add(new Step("item tooltips", "31_gui_tooltips", 10, mc -> mc.setScreen(new CatalogScreen(tooltipSamples(mc), true))));
         steps.add(new Step("close", null, 10, mc -> mc.player.closeContainer()));
         return steps;
     }
@@ -237,6 +254,62 @@ public final class ClientSmokeTest {
             float pitch = (float) -Math.toDegrees(Math.atan2(dyy, Math.sqrt(dx * dx + dz * dz)));
             player.teleportTo(level, x, y - EYE_HEIGHT, z, yaw, pitch);
         });
+    }
+
+    /** Every Selarium item, then a few scrolls that carry data (their seals are tinted per ward). */
+    private static List<ItemStack> catalog(Minecraft mc) {
+        List<ItemStack> stacks = new ArrayList<>();
+        ForgeRegistries.ITEMS.getEntries().stream()
+                .filter(entry -> entry.getKey().location().getNamespace().equals(Selarium.MOD_ID))
+                .sorted(java.util.Comparator.comparing(entry -> entry.getKey().location().getPath()))
+                .forEach(entry -> stacks.add(new ItemStack(entry.getValue())));
+        for (WardType type : List.of(WardType.BULWARK, WardType.BANISHMENT, WardType.REJUVENATION, WardType.STASIS,
+                WardType.SANCTUARY, WardType.WHISPERING)) {
+            stacks.add(ScrollData.ward(mc.player, type));
+        }
+        for (int tier = 1; tier <= 4; tier++) {
+            stacks.add(ScrollData.attunement(mc.player, tier));
+        }
+        return stacks;
+    }
+
+    private static List<ItemStack> tooltipSamples(Minecraft mc) {
+        return List.of(ScrollData.ward(mc.player, WardType.BANISHMENT), ScrollData.attunement(mc.player, 2),
+                new ItemStack(ForgeRegistries.ITEMS.getValue(ResourceLocation.fromNamespaceAndPath(Selarium.MOD_ID, "refined_focus_dust"))),
+                new ItemStack(SelariumItems.SELARIUM_CODEX.get()));
+    }
+
+    /** Draws item icons large (or their tooltips) on a dark plate, so models and tints can be judged at a glance. */
+    private static final class CatalogScreen extends Screen {
+        private final List<ItemStack> stacks;
+        private final boolean tooltips;
+
+        private CatalogScreen(List<ItemStack> stacks, boolean tooltips) {
+            super(Component.literal("Selarium catalog"));
+            this.stacks = stacks;
+            this.tooltips = tooltips;
+        }
+
+        @Override
+        public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+            graphics.fill(0, 0, width, height, 0xFF1B1626);
+            if (tooltips) {
+                for (int i = 0; i < stacks.size(); i++) {
+                    graphics.renderTooltip(font, stacks.get(i), 8 + (i % 2) * (width / 2), 8 + (i / 2) * (height / 2));
+                }
+                return;
+            }
+            int columns = 14;
+            float scale = 1.5F;
+            int cell = 30;
+            for (int i = 0; i < stacks.size(); i++) {
+                graphics.pose().pushPose();
+                graphics.pose().translate(6 + (i % columns) * cell, 6 + (i / columns) * cell, 0.0F);
+                graphics.pose().scale(scale, scale, 1.0F);
+                graphics.renderItem(stacks.get(i), 0, 0);
+                graphics.pose().popPose();
+            }
+        }
     }
 
     private static void pressRight(Minecraft mc, int times) {
@@ -291,6 +364,7 @@ public final class ClientSmokeTest {
         placeSigil(level, new BlockPos(-20, base, -26), player, WardType.REJUVENATION);
         placeSigil(level, new BlockPos(0, base, -26), player, WardType.WHISPERING);
         placeInactiveSigil(level, new BlockPos(-3, base, 11), player);
+        placeSigil(level, new BlockPos(-26, base, 22), player, WardType.TANGIBLE);
         // a fixed ward field cast from a scroll: no block entity, drawn by the level-stage renderer
         var cast = WardProjectionSavedData.get(level).cast(player, WardDefinitions.get(WardType.STASIS).orElseThrow(),
                 new BlockPos(30, base, 14), false);
