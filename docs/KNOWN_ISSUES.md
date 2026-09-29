@@ -6,7 +6,7 @@ This file tracks acceptable Alpha limitations and items to revisit after the fir
 
 - The Warding Grimoire and Selarium Codex screens are functional but text-heavy. They share the workshop panel
   style (`WorkshopUi`) with the Grinder, Inscription Bench and Sigil screens; none of them has animations yet.
-- Ward glyphs exist as textures (`textures/vfx/sigil/glyph/`) but the Codex does not show them yet.
+- The Codex ward atlas (glyph grid) is mouse-only; there is no keyboard navigation between glyphs yet.
 
 ## Wards
 
