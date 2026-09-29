@@ -392,5 +392,7 @@
   "screen.selarium.codex.ward_note.deflection": "Desvia projéteis hostis.",
   "screen.selarium.codex.ward_note.silence": "Enfraquece e remove efeitos benéficos.",
   "screen.selarium.codex.ward_note.phasing": "Permite atravessar blocos de phasing do Selarium.",
-  "message.selarium.sigil.deactivate_first": "Desative o sigilo antes de alterar as poeiras."
+  "message.selarium.sigil.deactivate_first": "Desative o sigilo antes de alterar as poeiras.",
+  "block.selarium.temporary_citadel_wall": "Muralha da Cidadela",
+  "block.selarium.tangible_barrier_block": "Barreira Tangível"
 }

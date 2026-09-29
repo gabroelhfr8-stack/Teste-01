@@ -392,5 +392,7 @@
   "screen.selarium.codex.ward_note.deflection": "Deflects hostile projectiles.",
   "screen.selarium.codex.ward_note.silence": "Weakens and strips beneficial effects.",
   "screen.selarium.codex.ward_note.phasing": "Allows passage through Selarium phasing blocks.",
-  "message.selarium.sigil.deactivate_first": "Deactivate the sigil before changing its dusts."
+  "message.selarium.sigil.deactivate_first": "Deactivate the sigil before changing its dusts.",
+  "block.selarium.temporary_citadel_wall": "Citadel Wall",
+  "block.selarium.tangible_barrier_block": "Tangible Barrier"
 }
