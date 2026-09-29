@@ -1,12 +1,13 @@
-"""Anti-aliased *angular* vector drawing on a supersampled canvas, in normalised [-1, 1] coordinates.
+"""Vector drawing on a supersampled canvas, in normalised [-1, 1] coordinates.
 
     v = Vec(256)                    # 256x256 output, drawn at 4x
     v.polyline([(0, -0.5), (0, 0.5)], width=0.03)
     mask = v.mask()                 # float32 [0,1], shape (256, 256)
 
-Selarium's shape rule is that nothing is a true circle: every "circle" is a polygon (an octagon by default, a
-hexagon or diamond when small), arcs are chains of straight facets, curves are sampled coarsely and strokes end in
-mitred corners instead of round caps. Ask for a different look with ``sides=`` or ``FACET_DEG``.
+Selarium's shapes are Minecraft-style: strokes end in mitred corners instead of round caps, and glyphs meant for the
+world or the GUI are rasterised straight to a small pixel grid (``smooth=True``, ``stroke_scale`` for thicker lines,
+then threshold the mask), so a circle becomes the stair-stepped circle of pixel art. Without ``smooth`` circles are
+polygons (an octagon by default), which suits big soft textures.
 """
 from __future__ import annotations
 
@@ -35,9 +36,11 @@ def default_start(sides: int) -> float:
 
 
 class Vec:
-    def __init__(self, size: int, supersample: int = 4):
+    def __init__(self, size: int, supersample: int = 4, smooth: bool = False, stroke_scale: float = 1.0):
         self.size = size
         self.ss = supersample
+        self.smooth = smooth
+        self.stroke_scale = stroke_scale
         self.n = size * supersample
         self.img = Image.new("L", (self.n, self.n), 0)
         self.d = ImageDraw.Draw(self.img)
@@ -47,7 +50,7 @@ class Vec:
         return ((p[0] * 0.5 + 0.5) * self.n, (p[1] * 0.5 + 0.5) * self.n)
 
     def wpx(self, width):
-        return max(1, int(round(width * 0.5 * self.n)))
+        return max(1, int(round(width * self.stroke_scale * 0.5 * self.n)))
 
     # strokes -----------------------------------------------------------------------
     def polyline(self, pts, width=0.02, close=False, fill=255, round_caps=True):
@@ -123,14 +126,23 @@ class Vec:
         return pts
 
     def circle(self, cx, cy, r, width=0.02, fill=255, sides=None, start=None, wobble=None):
+        if self.smooth and sides is None and wobble is None:
+            (x, y), rr = self.px((cx, cy)), r * 0.5 * self.n
+            self.d.ellipse([x - rr, y - rr, x + rr, y + rr], outline=fill, width=self.wpx(width))
+            return
         self.polyline(self.ring_points(cx, cy, r, sides, start, wobble), width, close=True, fill=fill)
 
     def disc(self, cx, cy, r, fill=255, sides=None, start=None, wobble=None):
+        if self.smooth and sides is None and wobble is None:
+            (x, y), rr = self.px((cx, cy)), r * 0.5 * self.n
+            self.d.ellipse([x - rr, y - rr, x + rr, y + rr], fill=fill)
+            return
         self.polygon(self.ring_points(cx, cy, r, sides, start, wobble), fill=fill)
 
     def arc(self, cx, cy, r, a0, a1, width=0.02, fill=255, steps=None):
         """Arc from angle a0 to a1 (degrees, 0 = +x, 90 = +y i.e. down on screen), drawn as straight facets."""
-        steps = steps or max(1, int(math.ceil(abs(a1 - a0) / FACET_DEG - 1e-6)))
+        if steps is None:
+            steps = max(24, int(abs(a1 - a0) / 3)) if self.smooth else max(1, int(math.ceil(abs(a1 - a0) / FACET_DEG - 1e-6)))
         pts = [(cx + r * math.cos(math.radians(a0 + (a1 - a0) * i / steps)),
                 cy + r * math.sin(math.radians(a0 + (a1 - a0) * i / steps))) for i in range(steps + 1)]
         self.polyline(pts, width, fill=fill)

@@ -437,5 +437,7 @@
   "advancements.selarium.all_wards.title": "Arquiteto de Barreiras",
   "advancements.selarium.all_wards.description": "Descubra as 32 proteções.",
   "screen.selarium.codex.atlas.title": "Atlas de Proteções",
-  "screen.selarium.codex.atlas.detail": "Receita: %s. Alcance %s, manutenção %s a cada %s ticks."
+  "screen.selarium.codex.atlas.detail": "Receita: %s. Alcance %s, manutenção %s a cada %s ticks.",
+  "message.selarium.ward.inert": "%s ficou sem mana e está inerte.",
+  "message.selarium.ward.resumed": "%s voltou a funcionar."
 }

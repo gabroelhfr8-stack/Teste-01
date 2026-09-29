@@ -437,5 +437,7 @@
   "advancements.selarium.all_wards.title": "Architect of Barriers",
   "advancements.selarium.all_wards.description": "Discover all 32 wards.",
   "screen.selarium.codex.atlas.title": "Ward Atlas",
-  "screen.selarium.codex.atlas.detail": "Recipe: %s. Range %s, upkeep %s every %s ticks."
+  "screen.selarium.codex.atlas.detail": "Recipe: %s. Range %s, upkeep %s every %s ticks.",
+  "message.selarium.ward.inert": "%s is out of mana and inert.",
+  "message.selarium.ward.resumed": "%s is working again."
 }

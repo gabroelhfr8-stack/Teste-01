@@ -4,7 +4,6 @@ from __future__ import annotations
 import numpy as np
 
 from . import pal, px
-from .vec import octagon_norm
 
 S = 32
 
@@ -191,7 +190,7 @@ def moon_log_top(seed=33):
     img = px.blank(S)
     img[..., 3] = 1
     yy, xx = np.mgrid[0:S, 0:S].astype(np.float32)
-    d = octagon_norm(xx - 15.5, yy - 15.5)          # growth rings are octagons, not circles
+    d = np.hypot(xx - 15.5, yy - 15.5)
     wob = px.fbm(S, S, 3, seed, 3, tile=False)
     rings = np.sin((d + wob * 3.0) * 1.15) * 0.5 + 0.5
     field = 0.35 + rings * 0.45 - d / 60.0
@@ -264,7 +263,7 @@ def sapling(seed=41):
     lobes = [(16, 7, 6.2), (9, 10, 4.6), (23, 10, 4.6), (12, 4, 4.0), (20, 4, 4.0), (16, 12, 4.8)]
     solid = np.zeros((S, S), dtype=bool)
     for k, (cx, cy, r) in enumerate(lobes):
-        d = (np.abs(xx - cx) + np.abs(yy - cy)) * 0.8 + px.fbm(S, S, 5, seed + k, 2, tile=False) * 1.2   # diamond lobes: a crystal crown
+        d = np.hypot(xx - cx, yy - cy) + px.fbm(S, S, 5, seed + k, 2, tile=False) * 2.0
         m = d < r
         col = ramp_lookup(np.clip(1.0 - d / r * 0.85 + 0.25 - (yy - cy) * 0.018, 0, 1), pal.INDIGO[2:8])[..., :3]
         img[..., :3] = np.where(m[..., None], col, img[..., :3])

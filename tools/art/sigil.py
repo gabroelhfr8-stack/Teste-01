@@ -11,7 +11,7 @@ import numpy as np
 
 from . import px
 from .runes import RUNES, rune_strokes
-from .vec import Vec, add, along, chipped_ngon, ngon, ray_hit, rot, scale, star_polygon
+from .vec import Vec, add, ngon, rot, scale, star_polygon
 
 WARD_ORDER = [
     "ambient_mana", "whispering", "spectral", "bulwark", "rejuvenation", "featherweight", "grounding",
@@ -447,193 +447,20 @@ def make_glyph(name: str, size: int = 256) -> np.ndarray:
     return finish(v)
 
 
-# -------------------------------------------------------------------- component marks
-def c_arcane(v):
-    pts = [(0, -0.7), (0.17, -0.17), (0.7, 0), (0.17, 0.17), (0, 0.7), (-0.17, 0.17), (-0.7, 0), (-0.17, -0.17)]
-    v.polygon(pts)
-
-
-def c_aegis(v):
-    v.polygon_outline([(p[0] * 1.6, p[1] * 1.6) for p in shield_pts()], 0.16)
-
-
-def c_vital(v):
-    leaf(v, (0, 0.6), (0, -0.6), 0.5, 0.16)
-    v.line((0, 0.6), (0, -0.2), 0.12)
-
-
-def c_focus(v):
-    v.circle(0, 0, 0.42, 0.16)
-    v.disc(0, 0, 0.12)
-    for a in (0, 90, 180, 270):
-        d = (math.cos(math.radians(a)), math.sin(math.radians(a)))
-        v.line(scale(d, 0.55), scale(d, 0.8), 0.14)
-
-
-def c_binding(v):
-    v.circle(-0.22, 0, 0.42, 0.15)
-    v.circle(0.22, 0, 0.42, 0.15)
-
-
-def c_echo(v):
-    for r in (0.22, 0.44, 0.68):
-        v.arc(0, 0.25, r, 215, 325, 0.14)
-    v.disc(0, 0.25, 0.08)
-
-
-def c_density(v):
-    v.polygon([(0, -0.7), (0.5, 0), (0, 0.7), (-0.5, 0)])
-    v.polygon([(0, -0.3), (0.2, 0), (0, 0.3), (-0.2, 0)], fill=0)
-
-
-def c_warp(v):
-    v.spiral(1.6, 0.05, 0.62, 0.15, start=0.5)
-
-
-def c_veil(v):
-    v.disc(0, 0, 0.62)
-    v.erase_disc(0.28, -0.12, 0.55)
-
-
-def c_chrono(v):
-    v.circle(0, 0, 0.62, 0.15)
-    v.line((0, 0), (0, -0.4), 0.14)
-    v.line((0, 0), (0.28, 0.16), 0.14)
-
-
-COMPONENTS = {"arcane": c_arcane, "aegis": c_aegis, "vital": c_vital, "focus": c_focus, "binding": c_binding,
-              "echo": c_echo, "density": c_density, "warp": c_warp, "veil": c_veil, "chrono": c_chrono}
-
-
-def make_component(name: str, size: int = 64) -> np.ndarray:
-    v = Vec(size, 6)
-    COMPONENTS[name](v)
-    return finish(v, halo=2.0, halo_strength=0.3)
-
-
-# ------------------------------------------------------------------------- rings
-# Every ring is a polygon: octagons, a decagon, an octagram. As they rotate on the ground their corners
-# sweep round, which is what makes them read as machinery rather than as wheels.
-def scaled(poly, k):
-    return [(x * k, y * k) for x, y in poly]
-
-
-def edge_ticks(v: Vec, outer, inner, count: int, long_every: int = 6, short: float = 0.55, width: float = WF * 0.7):
-    """Tick marks between two similar polygons, evenly spaced along their perimeter."""
-    for i in range(count):
-        s = i / count
-        a, _ = along(inner, s)
-        b, _ = along(outer, s)
-        k = 1.0 if i % long_every == 0 else short
-        v.line(a, (a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k), width)
-
-
-def make_ring_outer(size: int = 256) -> np.ndarray:
-    v = Vec(size)
-    outer = ngon(8, 0.985, start=-67.5)
-    inner = scaled(outer, 0.925)
-    v.polygon_outline(outer, 0.024)
-    v.polygon_outline(inner, 0.015)
-    edge_ticks(v, scaled(outer, 0.985), scaled(inner, 1.005), 64, 8)
-    for i in range(1, 8, 2):                       # a diamond in the middle of the four straight sides
-        mid, _ = along(scaled(outer, 0.955), (i + 0.5) / 8)
-        a = math.degrees(math.atan2(mid[1], mid[0]))
-        v.polygon([add(mid, rot((0, -0.055), a)), add(mid, rot((0.04, 0), a)), add(mid, rot((0, 0.055), a)), add(mid, rot((-0.04, 0), a))])
-    return finish(v, halo=4.0, halo_strength=0.28)
-
-
-def make_ring_runes(size: int = 256) -> np.ndarray:
-    v = Vec(size)
-    outer = ngon(10, 0.92)
-    inner = scaled(outer, 0.78)
-    v.polygon_outline(outer, 0.015)
-    v.polygon_outline(inner, 0.015)
-    band = scaled(outer, 0.89)
-    count = 20
-    for i in range(count):
-        c, tangent = along(band, (i + 0.5) / count)
-        a = math.degrees(math.atan2(tangent[1], tangent[0]))
-        for stroke in rune_strokes(i, c[0], c[1], 0.10, a + 180.0):
-            v.polyline(stroke, 0.017)
-    return finish(v, halo=3.5, halo_strength=0.3)
-
-
-def make_ring_star(size: int = 256) -> np.ndarray:
-    v = Vec(size)
-    v.polygon_outline(star_polygon(8, 3, 0.68), 0.016)
-    v.polygon_outline(ngon(8, 0.70, start=-67.5), 0.012)
-    v.polygon_outline(ngon(8, 0.30, start=-67.5), 0.014)
-    v.polygon_outline(ngon(4, 0.24), 0.012)
-    for p in ngon(8, 0.68):
-        v.disc(p[0], p[1], 0.03, sides=4)
-    return finish(v, halo=3.5, halo_strength=0.3)
-
-
-def make_ring_dash(size: int = 256) -> np.ndarray:
-    v = Vec(size)
-    hexagon = ngon(6, 0.62)
-    for i in range(6):
-        a, b = hexagon[i], hexagon[(i + 1) % 6]
-        for lo, hi in ((0.08, 0.42), (0.58, 0.92)):
-            v.line((a[0] + (b[0] - a[0]) * lo, a[1] + (b[1] - a[1]) * lo), (a[0] + (b[0] - a[0]) * hi, a[1] + (b[1] - a[1]) * hi), 0.02)
-    for a in range(0, 360, 60):
-        c = (0.5 * math.cos(math.radians(a)), 0.5 * math.sin(math.radians(a)))
-        v.polygon([add(c, rot((0, -0.055), a)), add(c, rot((0.045, 0.04), a)), add(c, rot((-0.045, 0.04), a))])
-    return finish(v, halo=3.0, halo_strength=0.25)
-
-
-def make_base_circle(size: int = 256) -> np.ndarray:
-    """The chalk-and-dust ritual figure drawn on the ground before any ward is resolved.
-
-    It is a hand-drawn decagon (every corner a little off), a smaller one inside it and a hexagon at the heart,
-    joined by eight spokes: chalk lines, so deliberately not perfect.
-    """
-    rng = np.random.default_rng(7)
-    v = Vec(size)
-    outer = chipped_ngon(10, 0.95, 11, angle_jitter=3.0, radius_jitter=0.02)
-    inner = scaled(outer, 0.92)
-    heart = chipped_ngon(6, 0.30, 12, angle_jitter=4.0, radius_jitter=0.03)
-    v.polygon_outline(outer, 0.03)
-    v.polygon_outline(inner, 0.016)
-    v.polygon_outline(heart, 0.02)
-    for a in range(0, 360, 45):
-        c1 = ray_hit(heart, a)
-        c2 = ray_hit(inner, a)
-        if c1 and c2:
-            v.line(c1, c2, 0.012)
-    edge_ticks(v, scaled(outer, 0.985), scaled(inner, 1.005), 50, 5, 0.6, 0.012)
-    core = v.mask()
-    grain = px.fbm(size, size, 24, 3, 3, tile=False)
-    speckle = (rng.random((size, size)) > 0.985).astype(np.float32) * (v.glow(4.0) > 0.03)
-    alpha = np.clip(core * (0.82 + 0.35 * (grain - 0.5)) + speckle * 0.55 + v.glow(2.2) * 0.1 * (1 - core), 0, 1)
+def make_glyph_pixel(name: str, size: int, stroke_scale: float, threshold: float) -> np.ndarray:
+    """A ward glyph drawn straight onto a small pixel grid: white, fully opaque or fully transparent."""
+    v = Vec(size, supersample=8, smooth=True, stroke_scale=stroke_scale)
+    GLYPHS[name](v)
+    mask = (v.mask() > threshold).astype(np.float32)
     img = px.blank(size)
-    tint = px.hexrgb("#cfc8ee")
-    img[..., :3] = tint * (0.9 + 0.15 * grain[..., None])
-    img[..., 3] = alpha
+    img[..., :3] = 1.0
+    img[..., 3] = mask
     return img
-
-
-def small_icon(img, size: int = 32):
-    """White silhouette of a glyph at GUI size; only alpha is resampled so no dark fringes appear."""
-    from PIL import Image
-    alpha = Image.fromarray((np.clip(img[..., 3], 0, 1) * 255 + 0.5).astype(np.uint8), "L").resize((size, size), Image.LANCZOS)
-    out = px.blank(size)
-    out[..., :3] = 1.0
-    out[..., 3] = np.asarray(alpha, dtype=np.float32) / 255.0
-    return out
 
 
 def build_all(assets: "px.Path") -> None:
     base = assets / "textures" / "vfx" / "sigil"
     for name in WARD_ORDER + ["incomplete"]:
-        glyph = make_glyph(name)
-        px.save(glyph, base / "glyph" / f"{name}.png")
+        px.save(make_glyph_pixel(name, 32, 1.55, 0.38), base / "glyph" / f"{name}.png")      # on the ground
         if name != "incomplete":
-            px.save(small_icon(glyph), assets / "textures" / "gui" / "ward_glyph" / f"{name}.png")
-    for name in DUST_ORDER:
-        px.save(make_component(name), base / "component" / f"{name}.png")
-    px.save(make_ring_outer(), base / "ring_outer.png")
-    px.save(make_ring_runes(), base / "ring_runes.png")
-    px.save(make_ring_star(), base / "ring_star.png")
-    px.save(make_ring_dash(), base / "ring_dash.png")
-    px.save(make_base_circle(), base / "base_circle.png")
+            px.save(make_glyph_pixel(name, 16, 2.0, 0.42), assets / "textures" / "gui" / "ward_glyph" / f"{name}.png")

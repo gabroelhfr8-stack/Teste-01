@@ -48,36 +48,30 @@ def crystal_item() -> np.ndarray:
     return img
 
 
-def mound() -> tuple[np.ndarray, np.ndarray]:
-    """Silhouette of a heap of powder: three straight-sided peaks of different slopes, like cut crystal scree.
-
-    Returns the mask and a +1/-1 map that marks which side of its peak each pixel lies on (used for facet shading).
-    """
+def mound_mask() -> np.ndarray:
     yy, xx = np.mgrid[0:S, 0:S].astype(np.float32)
     base = 27.0
-    peaks = [(14.0, 11.0, 9.5, 13.0), (22.5, 6.0, 7.5, 8.0), (8.0, 6.5, 5.0, 7.0)]   # x, reach left, reach right, height
-    tops = []
-    for cx, left, right, h in peaks:
-        u = np.where(xx < cx, (cx - xx) / left, (xx - cx) / right)
-        tops.append(np.where(u <= 1.0, base - h * (1.0 - u), 1e3))
-    tops = np.stack(tops)
-    top = tops.min(axis=0)
-    mask = (yy >= top) & (yy <= base)
-    owner = tops.argmin(axis=0)
-    facet = np.where(xx < np.array([p[0] for p in peaks], dtype=np.float32)[owner], 1.0, -1.0).astype(np.float32)
-    return mask, facet
+
+    def heap(cx, w, h, p=1.55):
+        u = np.clip(np.abs(xx - cx) / w, 0, 1)
+        top = base - h * (1 - u ** p) ** 0.8
+        return (yy >= top) & (yy <= base) & (np.abs(xx - cx) <= w)
+
+    m = heap(14.0, 11.0, 13.0) | heap(22.5, 7.0, 8.0, 1.8) | heap(8.5, 5.5, 6.0, 1.8)
+    # flatten the very bottom row into a soft base
+    return m
 
 
 def dust_item(kind: str, refined: bool) -> np.ndarray:
     ramp = pal.DUST_RAMPS[kind]
-    mask, facet = mound()
+    mask = mound_mask()
     yy, xx = np.mgrid[0:S, 0:S].astype(np.float32)
     # height-field lighting from the top-left
     top = np.where(mask, yy, 1e3)
     col_top = np.min(np.where(mask, yy, 1e3), axis=0)
     depth = np.where(mask, yy - col_top[None, :], 0.0)
     grain = px.fbm(S, S, 9, 91 + len(kind), 2, tile=False)
-    light = 0.78 - depth * 0.048 + facet * 0.10 + (grain - 0.5) * 0.36
+    light = 0.78 - depth * 0.048 - (xx - 10.0) * 0.006 + (grain - 0.5) * 0.36
     if refined:
         light += 0.14
     hi, lo = px.edge_light(mask.astype(np.float32))
@@ -121,22 +115,24 @@ def dust_item(kind: str, refined: bool) -> np.ndarray:
 
 
 def sigil_item() -> np.ndarray:
-    """Inventory icon for the Arcane Sigil: bold pixel-art chalk circle with a glowing core."""
-    from .vec import Vec
-    backing = Vec(S, 12)
-    backing.disc(0, 0, 0.99)
-    ring = Vec(S, 12)
-    ring.circle(0, 0, 0.84, 0.15)
-    ring.circle(0, 0, 0.48, 0.10)
+    """Inventory icon for the Arcane Sigil: a bold pixel-art chalk circle with a glowing core."""
+    from . import pix
+    d = pix.dist_grid(S)
+    backing = d <= 15.9
+    ring = pix.circle_ring(S, 14.4, 12.6) | pix.circle_ring(S, 8.6, 7.2)
     for a in range(0, 360, 45):
-        c, s_ = math.cos(math.radians(a)), math.sin(math.radians(a))
-        ring.line((0.48 * c, 0.48 * s_), (0.84 * c, 0.84 * s_), 0.08)
-    star = Vec(S, 12)
-    star.polygon([(0, -0.36), (0.1, -0.1), (0.36, 0), (0.1, 0.1), (0, 0.36), (-0.1, 0.1), (-0.36, 0), (-0.1, -0.1)])
+        x0, y0 = pix.polar(S, 8.0, a)
+        x1, y1 = pix.polar(S, 13.6, a)
+        pix.line(ring, x0, y0, x1, y1)
+    star = np.zeros((S, S), dtype=bool)
+    c = S // 2
+    star[c - 5:c + 5, c - 1:c + 1] = True
+    star[c - 1:c + 1, c - 5:c + 5] = True
+    star[c - 2:c + 2, c - 2:c + 2] = True
     img = px.blank(S)
-    px.paint(img, (backing.mask() > 0.5).astype(np.float32), px.hexrgb("#1b1230"), 0.85)
-    px.paint(img, (ring.mask() > 0.42).astype(np.float32), px.hexrgb("#d8d0f5"))
-    px.paint(img, (star.mask() > 0.42).astype(np.float32), px.hexrgb("#7ee6f2"))
+    px.paint(img, backing.astype(np.float32), px.hexrgb("#1b1230"), 0.85)
+    px.paint(img, ring.astype(np.float32), px.hexrgb("#d8d0f5"))
+    px.paint(img, star.astype(np.float32), px.hexrgb("#7ee6f2"))
     return img
 
 
