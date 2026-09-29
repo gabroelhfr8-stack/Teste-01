@@ -90,8 +90,8 @@ public final class InscriptionRecipe {
 
     public ItemStack result(ServerPlayer player, Container container) {
         if (evaluate(player, container) != Status.READY) return ItemStack.EMPTY;
-        return milestone != null ? ScrollData.attunement(player.getUUID(), milestone.tier())
-                : ScrollData.ward(player.getUUID(), ward.type());
+        return milestone != null ? ScrollData.attunement(player, milestone.tier())
+                : ScrollData.ward(player, ward.type());
     }
 
     public boolean consume(ServerPlayer player, Container container) {

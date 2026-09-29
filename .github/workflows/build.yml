@@ -38,13 +38,12 @@ jobs:
           if-no-files-found: error
       - name: GameTests (headless server)
         run: ./gradlew runGameTestServer --no-daemon --stacktrace
-      - name: Server log summary
+      - name: Check server log
         if: always()
         run: |
-          echo "----- ERROR/WARN/FATAL lines -----"
-          grep -E "/(ERROR|WARN|FATAL)\]" run/logs/latest.log | head -150 || true
+          python3 tools/check_server_log.py run/logs/latest.log
           echo "----- tail -----"
-          tail -80 run/logs/latest.log || true
+          tail -25 run/logs/latest.log || true
       - name: Upload run logs
         if: always()
         uses: actions/upload-artifact@v4

@@ -405,14 +405,28 @@ def check_versions() -> None:
 
 
 def check_dynamic_texture_references(used_textures: set[str]) -> None:
-    """Textures referenced only from Java (renderers, GUI, particles)."""
+    """Textures referenced only from Java (renderers, GUI, particles).
+
+    Three spellings are understood: a full literal ("textures/vfx/x.png"), a helper call with a
+    path relative to textures/ (tex("vfx/x.png"), texture("vfx/x.png")) and a computed name
+    ("vfx/sigil/glyph/" + name + ".png"), which marks every texture in that folder as used.
+    """
+    textures = ASSETS / "textures"
     for path in JAVA.rglob("*.java"):
         text = path.read_text(encoding="utf-8")
-        for match in re.finditer(r'"(textures/[a-z0-9_/]+\.png)"', text):
-            target = ASSETS / match.group(1)
+        literals = [m.group(1) for m in re.finditer(r'"(textures/[a-z0-9_/]+\.png)"', text)]
+        literals += ["textures/" + m.group(1) for m in re.finditer(r'\b(?:tex|texture)\("([a-z0-9_/]+\.png)"\)', text)]
+        for name in literals:
+            target = ASSETS / name
             used_textures.add(str(target))
             if not target.exists():
-                err(f"{rel(path)}: missing texture {match.group(1)}")
+                err(f"{rel(path)}: missing texture {name}")
+        for m in re.finditer(r'"((?:textures/)?[a-z0-9_]+(?:/[a-z0-9_]+)*/)"\s*\+[^;]*?"\.png"', text):
+            folder = textures / m.group(1).removeprefix("textures/")
+            if not folder.is_dir():
+                err(f"{rel(path)}: computed texture folder {m.group(1)} does not exist")
+                continue
+            used_textures.update(str(png) for png in folder.glob("*.png"))
 
 
 def report_unused(used_textures: set[str]) -> None:

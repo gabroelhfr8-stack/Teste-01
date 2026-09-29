@@ -74,11 +74,6 @@ def glow_disc(size: int = 64) -> np.ndarray:
     return _white(np.exp(-(r / 0.42) ** 2) * np.clip((1 - r) / 0.25, 0, 1))
 
 
-def mote(size: int = 8) -> np.ndarray:
-    x, y = _grid(size, size)
-    return _white(np.exp(-(np.hypot(x, y) / 0.5) ** 2))
-
-
 def beam(w: int = 32, h: int = 128) -> np.ndarray:
     x, y = _grid(w, h)
     across = np.exp(-(x / 0.42) ** 2)
@@ -173,7 +168,6 @@ def build_all(assets):
     for i, r in enumerate((0, 3, 5, 7, 10, 13, 17, 21)):
         px.save(rune_sprite(r), part / f"rune_{i}.png")
     px.save(ring_wave(), part / "ring.png")
-    px.save(mote(), part / "mote_0.png")
     v = assets / "textures" / "vfx"
     px.save(glow_disc(), v / "glow.png")
     px.save(beam(), v / "beam.png")

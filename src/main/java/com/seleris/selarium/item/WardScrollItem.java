@@ -6,9 +6,13 @@ import com.seleris.selarium.ward.WardActivationService;
 import com.seleris.selarium.ward.WardDefinition;
 import com.seleris.selarium.ward.WardDefinitions;
 import com.seleris.selarium.ward.WardProjectionSavedData;
+import com.seleris.selarium.ward.WardStyles;
 import com.seleris.selarium.ward.WardType;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
+import net.minecraft.network.chat.TextColor;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -87,12 +91,16 @@ public final class WardScrollItem extends Item {
     @Override public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> lines, TooltipFlag flag) {
         WardType type = ScrollData.ward(stack);
         if (type != WardType.NONE) {
-            lines.add(Component.translatable(type.getTranslationKey()));
+            lines.add(Component.translatable(type.getTranslationKey())
+                    .withStyle(Style.EMPTY.withColor(TextColor.fromRgb(WardStyles.primary(type)))));
+            lines.add(Component.translatable("tooltip.selarium.scroll.category",
+                    Component.translatable(WardStyles.category(type).getTranslationKey())).withStyle(ChatFormatting.GRAY));
             lines.add(Component.translatable(isMobile(type) ? "tooltip.selarium.scroll.mobile" : "tooltip.selarium.scroll.fixed"));
             WardDefinitions.get(type).ifPresent(definition -> lines.add(Component.translatable("tooltip.selarium.scroll.duration",
                     Math.max(1, definition.durationTicks() / 2) / 20, definition.upkeepCostValue())));
         }
-        if (ScrollData.creator(stack) != null) lines.add(Component.translatable("tooltip.selarium.scroll.creator", ScrollData.creator(stack).toString()));
+        String creator = ScrollData.creatorName(stack);
+        if (creator != null) lines.add(Component.translatable("tooltip.selarium.scroll.creator", creator).withStyle(ChatFormatting.DARK_GRAY));
         super.appendHoverText(stack, level, lines, flag);
     }
 }

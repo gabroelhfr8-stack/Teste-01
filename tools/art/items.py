@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import math
+import zlib
 
 import numpy as np
 
@@ -81,7 +82,7 @@ def dust_item(kind: str, refined: bool) -> np.ndarray:
     img = px.blank(S)
     img[..., :3] = body[..., :3]
     img[..., 3] = mask.astype(np.float32)
-    rng = np.random.default_rng(hash(kind) & 0xFFFF)
+    rng = np.random.default_rng(zlib.crc32(kind.encode()) & 0xFFFF)   # hash() is salted per process
     # type-specific accent flecks (see docs/VISUAL_IDENTITY.md)
     accent = {"vital": pal.GOLD[6], "warp": pal.VIOLET[6], "veil": pal.VIOLET[5], "density": pal.VIOLET[6],
               "arcane": pal.CYAN[6], "echo": pal.CYAN[7], "aegis": pal.SILVER[7], "focus": pal.ROSE[6],
@@ -94,7 +95,7 @@ def dust_item(kind: str, refined: bool) -> np.ndarray:
         # sparkles: plus-shaped glints and a soft halo hugging the silhouette
         for cx, cy in ((9, 16), (21, 12), (16, 21)):
             if 0 <= cy < S and img[cy, cx, 3] > 0:
-                img[cy, cx, :3] = pal.SILVER[8 if False else 7]
+                img[cy, cx, :3] = pal.SILVER[7]
                 for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
                     if img[cy + dy, cx + dx, 3] > 0:
                         img[cy + dy, cx + dx, :3] = np.minimum(ramp[-1] * 1.05, 1)

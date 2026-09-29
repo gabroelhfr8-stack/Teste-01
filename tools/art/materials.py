@@ -232,7 +232,7 @@ def build_all(assets):
         "arcane_metal": arcane_metal(), "gilded_trim": gilded_trim(), "glass_cyan": glass(),
         "crystal_violet": crystal_violet(), "crystal_cyan": crystal_cyan(), "moon_wood_dark": moon_wood_dark(),
         "leather_inlay": leather_inlay(), "parchment": parchment(), "rune_panel": rune_panel(), "gauge": gauge(),
-        "book_cover_violet": book_cover(hue="violet"), "book_cover_indigo": book_cover(seed=75, hue="indigo"),
+        "book_cover_violet": book_cover(hue="violet"),
         "pages_side": pages_side(), "ink": ink(),
     }
     for name, img in items.items():

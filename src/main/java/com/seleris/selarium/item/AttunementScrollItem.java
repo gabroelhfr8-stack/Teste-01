@@ -5,6 +5,7 @@ import com.seleris.selarium.inscription.ScrollData;
 import com.seleris.selarium.mana.capability.ManaCapability;
 import com.seleris.selarium.progression.AttunementMilestone;
 import com.seleris.selarium.ward.WardManaService;
+import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
@@ -59,7 +60,8 @@ public final class AttunementScrollItem extends Item {
                     milestone.spent(), milestone.distinct(), milestone.refined()));
             lines.add(Component.translatable("tooltip.selarium.attunement.cost", milestone.ritualCost()));
         }
-        if (ScrollData.creator(stack) != null) lines.add(Component.translatable("tooltip.selarium.scroll.creator", ScrollData.creator(stack).toString()));
+        String creator = ScrollData.creatorName(stack);
+        if (creator != null) lines.add(Component.translatable("tooltip.selarium.scroll.creator", creator).withStyle(ChatFormatting.DARK_GRAY));
         super.appendHoverText(stack, level, lines, flag);
     }
 }

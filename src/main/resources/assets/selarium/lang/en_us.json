@@ -115,7 +115,7 @@
   "block.selarium.arcane_planks": "Arcane Planks",
   "block.selarium.arcane_crystal_block": "Arcane Crystal Block",
   "block.selarium.arcane_block": "Arcane Block",
-  "block.selarium.phasing_block": "Magic Block",
+  "block.selarium.phasing_block": "Phasing Block",
   "block.selarium.budding_arcane_crystal": "Budding Arcane Crystal",
   "block.selarium.small_arcane_crystal_bud": "Small Arcane Crystal Bud",
   "block.selarium.medium_arcane_crystal_bud": "Medium Arcane Crystal Bud",
@@ -394,5 +394,13 @@
   "screen.selarium.codex.ward_note.phasing": "Allows passage through Selarium phasing blocks.",
   "message.selarium.sigil.deactivate_first": "Deactivate the sigil before changing its dusts.",
   "block.selarium.temporary_citadel_wall": "Citadel Wall",
-  "block.selarium.tangible_barrier_block": "Tangible Barrier"
+  "block.selarium.tangible_barrier_block": "Tangible Barrier",
+  "tooltip.selarium.scroll.category": "Category: %s",
+  "ward_category.selarium.source": "Mana Source",
+  "ward_category.selarium.detection": "Detection",
+  "ward_category.selarium.buff": "Boon",
+  "ward_category.selarium.utility": "Utility",
+  "ward_category.selarium.hostile": "Offensive",
+  "ward_category.selarium.structure": "Structure",
+  "ward_category.selarium.event": "Reaction"
 }
