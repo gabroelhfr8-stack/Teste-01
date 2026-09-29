@@ -5,6 +5,7 @@ import com.seleris.selarium.dust.DustDefinition;
 import com.seleris.selarium.dust.DustUtil;
 import com.seleris.selarium.sigil.SigilMenu;
 import com.seleris.selarium.ward.WardDefinitions;
+import com.seleris.selarium.ward.WardStyles;
 import com.seleris.selarium.ward.WardType;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -20,7 +21,9 @@ import java.util.Map;
 public final class SigilScreen extends AbstractContainerScreen<SigilMenu> {
     private static final int VISIBLE_COMPONENTS = 12;
     private static final ResourceLocation BASE = ResourceLocation.fromNamespaceAndPath(Selarium.MOD_ID,
-            "textures/block/arcane_sigil.png");
+            "textures/vfx/sigil/base_circle.png");
+    private static final ResourceLocation RING = ResourceLocation.fromNamespaceAndPath(Selarium.MOD_ID,
+            "textures/vfx/sigil/ring_runes.png");
     private int componentOffset;
 
     public SigilScreen(SigilMenu menu, Inventory inventory, Component title) {
@@ -48,12 +51,17 @@ public final class SigilScreen extends AbstractContainerScreen<SigilMenu> {
         WorkshopUi.parchment(g, x + 143, y + 29, 147, 108);
         WorkshopUi.parchment(g, x + 10, y + 143, 280, 81);
 
-        g.blit(BASE, x + 42, y + 51, 0, 0, 64, 64, 64, 64);
+        g.blit(BASE, x + 42, y + 51, 64, 64, 0.0F, 0.0F, 256, 256, 256, 256);
         var sigil = menu.sigil();
         if (sigil != null && sigil.getWardType() != WardType.NONE) {
+            WardStyles.Style style = WardStyles.of(sigil.getWardType());
             ResourceLocation ward = ResourceLocation.fromNamespaceAndPath(Selarium.MOD_ID,
-                    "textures/block/arcane_sigil_" + sigil.getWardType().getSerializedName() + ".png");
-            g.blit(ward, x + 42, y + 51, 0, 0, 64, 64, 64, 64);
+                    "textures/vfx/sigil/glyph/" + sigil.getWardType().getSerializedName() + ".png");
+            tint(g, style.secondary(), 0.7F);
+            g.blit(RING, x + 42, y + 51, 64, 64, 0.0F, 0.0F, 256, 256, 256, 256);
+            tint(g, style.primary(), 1.0F);
+            g.blit(ward, x + 42, y + 51, 64, 64, 0.0F, 0.0F, 256, 256, 256, 256);
+            g.setColor(1.0F, 1.0F, 1.0F, 1.0F);
         }
 
         List<Map.Entry<DustDefinition, Integer>> components = components();
@@ -121,6 +129,10 @@ public final class SigilScreen extends AbstractContainerScreen<SigilMenu> {
             WorkshopUi.smallText(g, font, Component.translatable("gui.selarium.sigil.quick_action"),
                     161, 196, 113, 0xFFF0E4D3);
         }
+    }
+
+    private static void tint(GuiGraphics g, int rgb, float alpha) {
+        g.setColor(((rgb >> 16) & 0xFF) / 255.0F, ((rgb >> 8) & 0xFF) / 255.0F, (rgb & 0xFF) / 255.0F, alpha);
     }
 
     private List<Map.Entry<DustDefinition, Integer>> components() {

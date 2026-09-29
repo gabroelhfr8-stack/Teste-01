@@ -9,10 +9,13 @@ import com.seleris.selarium.dust.DustType;
 import com.seleris.selarium.registry.SelariumBlocks;
 import com.seleris.selarium.registry.SelariumRecipeTypes;
 import com.seleris.selarium.ward.WardActivationService;
+import com.seleris.selarium.ward.WardArea;
 import com.seleris.selarium.ward.WardContext;
 import com.seleris.selarium.ward.WardDefinition;
 import com.seleris.selarium.ward.WardDefinitions;
 import com.seleris.selarium.ward.WardManager;
+import com.seleris.selarium.ward.WardStyles;
+import com.seleris.selarium.ward.effect.WardEffects;
 import com.seleris.selarium.ward.WardType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
@@ -24,6 +27,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.storage.loot.LootTable;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.gametest.GameTestHolder;
 import net.minecraftforge.gametest.PrefixGameTestTemplate;
 import net.minecraftforge.registries.RegistryObject;
@@ -62,6 +66,27 @@ public final class SelariumGameTests {
                 helper.assertTrue(WardDefinitions.get(type).isPresent(), "missing definition for " + type);
             }
         }
+        helper.succeed();
+    }
+
+    @GameTest(template = EMPTY)
+    public static void everyWardHasAnEffectAndAStyle(GameTestHelper helper) {
+        for (WardType type : WardType.values()) {
+            if (type != WardType.NONE) {
+                helper.assertTrue(WardEffects.isRegistered(type), "no effect registered for " + type);
+                helper.assertTrue(WardStyles.has(type), "no visual style for " + type);
+            }
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = EMPTY)
+    public static void wardAreaIsSpherical(GameTestHelper helper) {
+        BlockPos center = helper.absolutePos(new BlockPos(3, 1, 3));
+        WardArea area = WardArea.of(helper.getLevel(), center, 4);
+        helper.assertTrue(area.contains(Vec3.atCenterOf(center.offset(4, 0, 0))), "a point on the axis at range should be inside");
+        helper.assertTrue(area.contains(Vec3.atCenterOf(center.offset(2, 2, 2))), "a point well within the sphere should be inside");
+        helper.assertTrue(!area.contains(Vec3.atCenterOf(center.offset(4, 4, 4))), "the corner of the bounding cube must be outside the sphere");
         helper.succeed();
     }
 

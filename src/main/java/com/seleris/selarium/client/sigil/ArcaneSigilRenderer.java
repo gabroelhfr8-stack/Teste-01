@@ -2,266 +2,315 @@ package com.seleris.selarium.client.sigil;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.math.Axis;
 import com.seleris.selarium.Selarium;
 import com.seleris.selarium.blockentity.ArcaneSigilBlockEntity;
-import com.seleris.selarium.client.render.SelariumRenderUtil;
-import com.seleris.selarium.config.SelariumCommonConfig;
-import com.seleris.selarium.dust.DustPurity;
+import com.seleris.selarium.client.vfx.SelariumRenderTypes;
+import com.seleris.selarium.client.vfx.VfxDraw;
+import com.seleris.selarium.client.vfx.WardShellRenderer;
+import com.seleris.selarium.config.SelariumClientConfig;
+import com.seleris.selarium.dust.DustDefinition;
 import com.seleris.selarium.dust.DustType;
+import com.seleris.selarium.ward.WardStyles;
 import com.seleris.selarium.ward.WardType;
-import com.mojang.math.Axis;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
+import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
-import org.joml.Matrix3f;
-import org.joml.Matrix4f;
+import net.minecraft.world.phys.Vec3;
+import org.joml.Quaternionf;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+/**
+ * Draws the ritual circle of an Arcane Sigil: the chalk base, dust component marks, the ward glyph, and
+ * (while active) rotating light rings, orbiting runes, a floating focus crystal, a light column and the
+ * ward's field shell. Layers are ordered bottom to top by tiny vertical offsets.
+ */
 public class ArcaneSigilRenderer implements BlockEntityRenderer<ArcaneSigilBlockEntity> {
-    private static final ResourceLocation BASE_TEXTURE = ResourceLocation.fromNamespaceAndPath(Selarium.MOD_ID, "textures/block/arcane_sigil.png");
-    private static final ResourceLocation ACTIVE_TEXTURE = ResourceLocation.fromNamespaceAndPath(Selarium.MOD_ID, "textures/block/arcane_sigil_active.png");
-    private static final float BASE_Y = 0.071F;
-    private static final float LAYER_STEP = 0.002F;
-    private static final float FULL_QUAD_SCALE = 1.0F;
-    private static final float OVERLAY_SCALE = 0.92F;
-    private static final float ACTIVE_SCALE = 1.0F;
+    private static final ResourceLocation BASE = tex("vfx/sigil/base_circle.png");
+    private static final ResourceLocation RING_OUTER = tex("vfx/sigil/ring_outer.png");
+    private static final ResourceLocation RING_RUNES = tex("vfx/sigil/ring_runes.png");
+    private static final ResourceLocation RING_STAR = tex("vfx/sigil/ring_star.png");
+    private static final ResourceLocation RING_DASH = tex("vfx/sigil/ring_dash.png");
+    private static final ResourceLocation GLOW = tex("vfx/glow.png");
+    private static final ResourceLocation BEAM = tex("vfx/beam.png");
+    private static final ResourceLocation CRYSTAL = tex("block/crystal_cyan.png");
+    private static final ResourceLocation[] ORBIT_RUNES = new ResourceLocation[8];
 
-    private final Map<Long, VisualState> visualStates = new HashMap<>();
+    static {
+        for (int i = 0; i < ORBIT_RUNES.length; i++) {
+            ORBIT_RUNES[i] = tex("particle/rune_" + i + ".png");
+        }
+    }
+
+    private static final float BASE_Y = 0.024F;
+    private static final float STEP = 0.0025F;
+    private static final int ACTIVATE_TICKS = 24;
+    private static final int DEACTIVATE_TICKS = 28;
+    private static final int MAX_MARKS = 8;
+
+    private final Map<Long, State> states = new HashMap<>();
+    private long lastPrune;
 
     public ArcaneSigilRenderer(BlockEntityRendererProvider.Context context) {
     }
 
-    @Override
-    public void render(ArcaneSigilBlockEntity sigil, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
-        boolean animationsEnabled = SelariumCommonConfig.SIGIL_ANIMATIONS_ENABLED.get();
-        boolean active = sigil.isActive();
-        float time = getAnimationTime(sigil, partialTick);
-        float phase = getPhaseOffset(sigil.getBlockPos());
-        VisualState visualState = getVisualState(sigil, time);
-        visualState.update(time, active, animationsEnabled);
-
-        float activationProgress = animationsEnabled ? smoothstep(visualState.activationProgress) : active ? 1.0F : 0.0F;
-        float activeLift = animationsEnabled ? getActiveLift(time, phase, activationProgress) : 0.0F;
-        int baseAlpha = blendAlpha(215, pulseAlpha(time, phase, 215, 235), activationProgress);
-
-        maybeSpawnParticles(sigil, visualState, time, phase, activeLift, activationProgress);
-
-        drawLayer(poseStack, bufferSource, BASE_TEXTURE, BASE_Y + activeLift, 0.0F, FULL_QUAD_SCALE, packedLight, baseAlpha);
-
-        int light = activationProgress > 0.2F ? LightTexture.FULL_BRIGHT : packedLight;
-        WardType preview = ClientSigilSelection.previewFor(sigil);
-        SigilVisualPlan visualPlan = SigilVisualResolver.resolve(sigil,
-                preview == WardType.NONE ? sigil.getWardType() : preview);
-        int visibleComponents = Math.min(4, visualPlan.componentLayers().size());
-        for (int index = 0; index < visibleComponents; index++) {
-            SigilVisualPlan.ComponentLayer componentLayer = visualPlan.componentLayers().get(index);
-            float angle = (float) (index * Math.PI * 2.0 / visibleComponents - Math.PI / 2.0);
-            float offsetX = Mth.cos(angle) * 0.36F;
-            float offsetZ = Mth.sin(angle) * 0.36F;
-            int alpha = blendAlpha(125, 170, activationProgress);
-            drawLayer(poseStack, bufferSource, componentLayer.layer().texture(),
-                    BASE_Y + activeLift + LAYER_STEP, 0.0F, 0.28F, light, alpha, offsetX, offsetZ);
-        }
-
-        if (visualPlan.wardLayer().isPresent()) {
-            ArcaneSigilVisualLayer wardLayer = visualPlan.wardLayer().get();
-            int inactiveAlpha = Math.max(165, Math.min(225, SelariumCommonConfig.SIGIL_WARD_LAYER_ALPHA.get()));
-            int alpha = blendAlpha(inactiveAlpha, 235, activationProgress);
-            drawLayer(poseStack, bufferSource, wardLayer.texture(), BASE_Y + activeLift + 2 * LAYER_STEP,
-                    0.0F, OVERLAY_SCALE, light, alpha);
-        }
-
-        if (active || activationProgress > 0.01F) {
-            int alpha = blendAlpha(0, pulseAlpha(time, phase + 3.0F, 55, 95), activationProgress);
-            drawLayer(poseStack, bufferSource, ACTIVE_TEXTURE, BASE_Y + activeLift + 3 * LAYER_STEP,
-                    0.0F, ACTIVE_SCALE, LightTexture.FULL_BRIGHT, alpha);
-        }
+    private static ResourceLocation tex(String path) {
+        return ResourceLocation.fromNamespaceAndPath(Selarium.MOD_ID, "textures/" + path);
     }
 
-    private static float getAnimationTime(ArcaneSigilBlockEntity sigil, float partialTick) {
+    @Override
+    public boolean shouldRenderOffScreen(ArcaneSigilBlockEntity sigil) {
+        return sigil.isActive();
+    }
+
+    @Override
+    public int getViewDistance() {
+        return 96;
+    }
+
+    @Override
+    public void render(ArcaneSigilBlockEntity sigil, float partialTick, PoseStack poseStack, MultiBufferSource buffers,
+                       int packedLight, int packedOverlay) {
         Level level = sigil.getLevel();
         if (level == null) {
-            return partialTick;
-        }
-
-        long created = Math.max(0L, sigil.getCreatedGameTime());
-        return Math.max(0.0F, level.getGameTime() - created + partialTick);
-    }
-
-    private static float getPhaseOffset(BlockPos pos) {
-        long hash = pos.asLong();
-        return (hash & 1023L) * 0.015F;
-    }
-
-    private VisualState getVisualState(ArcaneSigilBlockEntity sigil, float time) {
-        long key = sigil.getBlockPos().asLong();
-        long created = sigil.getCreatedGameTime();
-        VisualState visualState = visualStates.get(key);
-        if (visualState == null || visualState.createdGameTime != created || time < visualState.lastRenderTime) {
-            long gameTime = sigil.getLevel() == null ? 0L : sigil.getLevel().getGameTime();
-            visualState = new VisualState(created, sigil.isActive() ? 1.0F : 0.0F, sigil.isActive(), getVisualComponentCount(sigil), gameTime, time);
-            visualStates.put(key, visualState);
-        }
-        return visualState;
-    }
-
-    private static float getActiveLift(float time, float phase, float activationProgress) {
-        float lift = SelariumCommonConfig.SIGIL_FLOATING_WHEN_ACTIVE.get()
-                ? SelariumCommonConfig.SIGIL_ACTIVE_FLOAT_HEIGHT.get().floatValue() * activationProgress
-                : 0.0F;
-        if (SelariumCommonConfig.SIGIL_ACTIVE_BOBBING_ENABLED.get()) {
-            lift += Mth.sin(time * SelariumCommonConfig.SIGIL_ACTIVE_BOBBING_SPEED.get().floatValue() + phase)
-                    * SelariumCommonConfig.SIGIL_ACTIVE_BOBBING_AMPLITUDE.get().floatValue()
-                    * activationProgress;
-        }
-        return lift;
-    }
-
-    private static int pulseAlpha(float time, float phase, int minAlpha, int maxAlpha) {
-        float normalized = (Mth.sin(time * 0.12F + phase) + 1.0F) * 0.5F;
-        return Mth.clamp(Math.round(Mth.lerp(normalized, minAlpha, maxAlpha)), 0, 255);
-    }
-
-    private static int blendAlpha(int inactiveAlpha, int activeAlpha, float activationProgress) {
-        return Mth.clamp(Math.round(Mth.lerp(activationProgress, inactiveAlpha, activeAlpha)), 0, 255);
-    }
-
-    private static float smoothstep(float value) {
-        float clamped = Mth.clamp(value, 0.0F, 1.0F);
-        return clamped * clamped * (3.0F - 2.0F * clamped);
-    }
-
-    private void maybeSpawnParticles(ArcaneSigilBlockEntity sigil, VisualState visualState, float time, float phase, float activeLift, float activationProgress) {
-        if (!SelariumCommonConfig.SIGIL_ANIMATIONS_ENABLED.get() || !SelariumCommonConfig.SIGIL_ENABLE_PARTICLES.get()) {
-            visualState.componentCount = getVisualComponentCount(sigil);
-            visualState.active = sigil.isActive();
             return;
         }
+        SelariumClientConfig.VfxQuality quality = SelariumClientConfig.VFX_QUALITY.get();
+        boolean animate = quality != SelariumClientConfig.VfxQuality.OFF && SelariumClientConfig.SIGIL_ANIMATIONS.get();
+        float time = level.getGameTime() + partialTick;
+        State state = stateFor(sigil, time);
+        state.update(time, sigil.isActive(), animate);
+        float activation = state.activation * state.activation * (3.0F - 2.0F * state.activation);
 
-        Level level = sigil.getLevel();
-        if (level == null || !level.isClientSide) {
-            return;
+        WardType preview = ClientSigilSelection.previewFor(sigil);
+        WardType shown = preview != WardType.NONE ? preview : sigil.getWardType();
+        WardStyles.Style style = WardStyles.of(shown);
+        List<DustType> marks = visibleMarks(sigil);
+
+        BlockPos pos = sigil.getBlockPos();
+        float phase = (pos.asLong() & 1023L) * 0.015F;
+        float pulse = 0.5F + 0.5F * Mth.sin(time * 0.09F + phase);
+        float lift = activation * 0.05F + (animate ? Mth.sin(time * 0.11F + phase) * 0.008F * activation : 0.0F);
+        float y = BASE_Y + lift;
+        int lit = activation > 0.15F ? LightTexture.FULL_BRIGHT : packedLight;
+        int layer = 0;
+
+        // 1. chalk base
+        VfxDraw.groundQuad(buffers.getBuffer(SelariumRenderTypes.decal(BASE)), poseStack, 0.5F, y, 0.0F, 0xFFFFFF,
+                VfxDraw.alpha(0.93F), packedLight);
+
+        // 2. dust component marks around the ring
+        if (!marks.isEmpty()) {
+            float ringSpin = animate ? time * (0.2F + 0.4F * activation) : 0.0F;
+            float radius = 0.305F;
+            for (int i = 0; i < marks.size(); i++) {
+                DustType type = marks.get(i);
+                float angle = (float) (i * Math.PI * 2.0D / marks.size()) + (float) Math.toRadians(ringSpin);
+                float ox = Mth.cos(angle) * radius;
+                float oz = Mth.sin(angle) * radius;
+                poseStack.pushPose();
+                poseStack.translate(ox, 0.0F, oz);
+                VertexConsumer consumer = buffers.getBuffer(SelariumRenderTypes.decal(componentTexture(type)));
+                VfxDraw.groundQuad(consumer, poseStack, 0.085F, y + STEP, -(float) Math.toDegrees(angle) - 90.0F,
+                        DustPalette.color(type), VfxDraw.alpha(0.9F), lit);
+                poseStack.popPose();
+            }
+            layer++;
         }
 
-        long gameTime = level.getGameTime();
-        int componentCount = getVisualComponentCount(sigil);
-        boolean active = sigil.isActive();
+        // 3. ward glyph (resolved, previewed, or the incomplete marker)
+        String glyph = shown != WardType.NONE ? shown.getSerializedName() : (marks.isEmpty() ? null : "incomplete");
+        if (glyph != null) {
+            int glyphColor = shown != WardType.NONE ? style.primary() : 0xC9C2EE;
+            float glyphAlpha = preview != WardType.NONE
+                    ? 0.55F + 0.35F * pulse
+                    : Mth.lerp(activation, 0.72F + 0.12F * pulse, 0.95F);
+            float spin = animate && activation > 0.0F ? time * 0.25F * activation : 0.0F;
+            VfxDraw.groundQuad(buffers.getBuffer(SelariumRenderTypes.decal(glyphTexture(glyph))), poseStack, 0.5F,
+                    y + (2 + layer) * STEP, spin, glyphColor, VfxDraw.alpha(glyphAlpha), lit);
+            if (activation > 0.02F) {
+                VfxDraw.groundQuad(buffers.getBuffer(SelariumRenderTypes.additive(glyphTexture(glyph))), poseStack, 0.5F,
+                        y + (3 + layer) * STEP, spin, style.secondary(), VfxDraw.alpha(activation * (0.35F + 0.35F * pulse)),
+                        LightTexture.FULL_BRIGHT);
+            }
+        }
 
-        if (componentCount > visualState.componentCount) {
-            spawnBurst(level, sigil.getBlockPos(), 5, BASE_Y + activeLift + 0.05F, false);
-        }
-        if (active && !visualState.active) {
-            spawnBurst(level, sigil.getBlockPos(), SelariumCommonConfig.SIGIL_ACTIVATION_PARTICLE_BURST.get(), BASE_Y + activeLift + 0.08F, true);
-        }
-        if (!active && visualState.active) {
-            spawnBurst(level, sigil.getBlockPos(), SelariumCommonConfig.SIGIL_DEACTIVATION_PARTICLE_BURST.get(), BASE_Y + activeLift + 0.05F, false);
-        }
-        if (activationProgress > 0.15F && gameTime - visualState.lastActiveParticleTick >= SelariumCommonConfig.SIGIL_ACTIVE_PARTICLE_INTERVAL.get()) {
-            spawnAmbient(level, sigil.getBlockPos(), BASE_Y + activeLift + 0.07F, time, phase);
-            visualState.lastActiveParticleTick = gameTime;
+        // 4. active light rings
+        if (activation > 0.02F && quality != SelariumClientConfig.VfxQuality.OFF) {
+            float unfold = 0.72F + 0.28F * activation;
+            float ringY = y + 6 * STEP;
+            VfxDraw.groundQuad(buffers.getBuffer(SelariumRenderTypes.additive(RING_OUTER)), poseStack, 0.5F * unfold, ringY,
+                    animate ? time * 0.28F : 0.0F, 0xFFE9A8, VfxDraw.alpha(activation * 0.8F), LightTexture.FULL_BRIGHT);
+            VfxDraw.groundQuad(buffers.getBuffer(SelariumRenderTypes.additive(RING_RUNES)), poseStack, 0.5F * unfold, ringY + STEP,
+                    animate ? time * 0.7F : 0.0F, style.secondary(), VfxDraw.alpha(activation * 0.85F), LightTexture.FULL_BRIGHT);
+            VfxDraw.groundQuad(buffers.getBuffer(SelariumRenderTypes.additive(RING_STAR)), poseStack, 0.5F * unfold, ringY + 2 * STEP,
+                    animate ? -time * 1.05F : 0.0F, style.primary(), VfxDraw.alpha(activation * (0.55F + 0.3F * pulse)), LightTexture.FULL_BRIGHT);
+            if (quality.atLeast(SelariumClientConfig.VfxQuality.MEDIUM)) {
+                VfxDraw.groundQuad(buffers.getBuffer(SelariumRenderTypes.additive(RING_DASH)), poseStack, 0.5F * unfold, ringY + 3 * STEP,
+                        animate ? time * 1.6F : 0.0F, style.secondary(), VfxDraw.alpha(activation * 0.5F), LightTexture.FULL_BRIGHT);
+            }
         }
 
-        visualState.componentCount = componentCount;
-        visualState.active = active;
+        // 5. orbiting runes and the floating focus crystal
+        if (activation > 0.05F && animate && SelariumClientConfig.SIGIL_FLOATING_RUNES.get()
+                && quality.atLeast(SelariumClientConfig.VfxQuality.MEDIUM)) {
+            drawOrbit(poseStack, buffers, time, phase, activation, style, quality.atLeast(SelariumClientConfig.VfxQuality.HIGH) ? 6 : 4);
+            drawFocusCrystal(poseStack, buffers, time, phase, activation, style, Math.min(marks.size(), 6));
+        }
+
+        // 6. light column
+        if (activation > 0.05F && animate && SelariumClientConfig.SIGIL_LIGHT_BEAM.get()
+                && quality.atLeast(SelariumClientConfig.VfxQuality.HIGH)) {
+            drawBeam(poseStack, buffers, time, activation, style.primary());
+        }
+
+        // 7. the field itself
+        if (sigil.isActive() || activation > 0.05F) {
+            WardType fieldType = sigil.getWardType();
+            if (fieldType != WardType.NONE) {
+                Vec3 camera = Minecraft.getInstance().gameRenderer.getMainCamera().getPosition();
+                Vec3 viewer = camera.subtract(pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D);
+                WardShellRenderer.draw(poseStack, buffers, fieldType, Math.max(1, sigil.getRange()), activation, time, viewer);
+            }
+        }
+
+        if (time - lastPrune > 400.0F) {
+            lastPrune = (long) time;
+            states.values().removeIf(entry -> time - entry.lastTime > 200.0F);
+        }
     }
 
-    private static int getVisualComponentCount(ArcaneSigilBlockEntity sigil) {
-        return Math.max(0, sigil.getTotalComponents() - sigil.getComponentCount(DustType.ARCANE, DustPurity.BASIC));
-    }
-
-    private static void spawnBurst(Level level, BlockPos pos, int count, float yOffset, boolean active) {
-        RandomSource random = level.random;
-        for (int index = 0; index < count; index++) {
-            double angle = random.nextDouble() * Math.PI * 2.0D;
-            double radius = active ? 0.28D + random.nextDouble() * 0.38D : 0.18D + random.nextDouble() * 0.28D;
-            double x = pos.getX() + 0.5D + Math.cos(angle) * radius;
-            double y = pos.getY() + yOffset + random.nextDouble() * 0.05D;
-            double z = pos.getZ() + 0.5D + Math.sin(angle) * radius;
-            level.addParticle(ParticleTypes.ENCHANT, x, y, z, -Math.cos(angle) * 0.015D, 0.025D, -Math.sin(angle) * 0.015D);
+    private void drawOrbit(PoseStack poseStack, MultiBufferSource buffers, float time, float phase, float activation,
+                           WardStyles.Style style, int count) {
+        Quaternionf camera = Minecraft.getInstance().getEntityRenderDispatcher().cameraOrientation();
+        for (int i = 0; i < count; i++) {
+            float angle = (float) Math.toRadians(time * 1.7F) + i * (float) (Math.PI * 2.0D / count);
+            float bob = Mth.sin(time * 0.09F + i * 1.7F + phase) * 0.035F;
+            float rx = 0.5F + Mth.cos(angle) * 0.4F;
+            float rz = 0.5F + Mth.sin(angle) * 0.4F;
+            float ry = 0.42F + bob + 0.06F * Mth.sin(i * 2.1F);
+            VertexConsumer consumer = buffers.getBuffer(SelariumRenderTypes.additive(ORBIT_RUNES[i % ORBIT_RUNES.length]));
+            VfxDraw.billboard(consumer, poseStack, camera, rx, ry, rz, 0.07F, 0.0F, style.secondary(),
+                    VfxDraw.alpha(activation * 0.85F), LightTexture.FULL_BRIGHT);
         }
     }
 
-    private static void spawnAmbient(Level level, BlockPos pos, float yOffset, float time, float phase) {
-        double angle = time * 0.12D + phase;
-        double radius = 0.44D;
-        double x = pos.getX() + 0.5D + Math.cos(angle) * radius;
-        double y = pos.getY() + yOffset;
-        double z = pos.getZ() + 0.5D + Math.sin(angle) * radius;
-        level.addParticle(ParticleTypes.ENCHANT, x, y, z, -Math.cos(angle) * 0.01D, 0.018D, -Math.sin(angle) * 0.01D);
-    }
+    private void drawFocusCrystal(PoseStack poseStack, MultiBufferSource buffers, float time, float phase, float activation,
+                                  WardStyles.Style style, int marks) {
+        float size = (0.055F + 0.012F * marks) * (0.6F + 0.4F * activation);
+        float height = size * 1.55F;
+        float cy = 0.62F + Mth.sin(time * 0.07F + phase) * 0.03F;
+        int tint = VfxDraw.mix(0xFFFFFF, style.primary(), 0.55F);
+        int alpha = VfxDraw.alpha(0.92F * activation);
 
-    private static void drawLayer(PoseStack poseStack, MultiBufferSource bufferSource, ResourceLocation texture, float y, float rotationDegrees, float scale, int light, int alpha) {
-        drawLayer(poseStack, bufferSource, texture, y, rotationDegrees, scale, light, alpha, 0.0F, 0.0F);
-    }
+        Quaternionf camera = Minecraft.getInstance().getEntityRenderDispatcher().cameraOrientation();
+        VfxDraw.billboard(buffers.getBuffer(SelariumRenderTypes.additive(GLOW)), poseStack, camera, 0.5F, cy, 0.5F,
+                0.26F + 0.03F * Mth.sin(time * 0.13F), 0.0F, style.primary(), VfxDraw.alpha(0.5F * activation), LightTexture.FULL_BRIGHT);
 
-    private static void drawLayer(PoseStack poseStack, MultiBufferSource bufferSource, ResourceLocation texture,
-                                  float y, float rotationDegrees, float scale, int light, int alpha,
-                                  float offsetX, float offsetZ) {
-        VertexConsumer consumer = bufferSource.getBuffer(RenderType.entityTranslucent(texture));
         poseStack.pushPose();
-        poseStack.translate(0.5F + offsetX, y, 0.5F + offsetZ);
-        poseStack.mulPose(Axis.YP.rotationDegrees(rotationDegrees));
-        poseStack.scale(scale, 1.0F, scale);
+        poseStack.translate(0.5F, cy, 0.5F);
+        poseStack.mulPose(Axis.YP.rotationDegrees(time * 2.6F));
+        poseStack.mulPose(Axis.XP.rotationDegrees(Mth.sin(time * 0.05F) * 8.0F));
+        VertexConsumer consumer = buffers.getBuffer(SelariumRenderTypes.glow(CRYSTAL));
         PoseStack.Pose pose = poseStack.last();
-        Matrix4f matrix = pose.pose();
-        Matrix3f normal = pose.normal();
-
-        SelariumRenderUtil.vertex(consumer, matrix, normal, -0.5F, 0.0F, -0.5F, 0.0F, 0.0F, light, 255, 255, 255, alpha, 0.0F, 1.0F, 0.0F);
-        SelariumRenderUtil.vertex(consumer, matrix, normal, -0.5F, 0.0F, 0.5F, 0.0F, 1.0F, light, 255, 255, 255, alpha, 0.0F, 1.0F, 0.0F);
-        SelariumRenderUtil.vertex(consumer, matrix, normal, 0.5F, 0.0F, 0.5F, 1.0F, 1.0F, light, 255, 255, 255, alpha, 0.0F, 1.0F, 0.0F);
-        SelariumRenderUtil.vertex(consumer, matrix, normal, 0.5F, 0.0F, -0.5F, 1.0F, 0.0F, light, 255, 255, 255, alpha, 0.0F, 1.0F, 0.0F);
+        float[][] equator = {{size, 0, 0}, {0, 0, size}, {-size, 0, 0}, {0, 0, -size}};
+        for (int i = 0; i < 4; i++) {
+            float[] a = equator[i];
+            float[] b = equator[(i + 1) % 4];
+            float shadeTop = 0.72F + 0.28F * (i % 2);
+            float shadeBottom = 0.5F + 0.25F * (i % 2);
+            int top = VfxDraw.mix(0x000000, tint, shadeTop);
+            int bottom = VfxDraw.mix(0x000000, tint, shadeBottom);
+            VfxDraw.triangle(consumer, pose, 0, height, 0, 0.5F, 0.0F, a[0], a[1], a[2], 0.0F, 1.0F, b[0], b[1], b[2], 1.0F, 1.0F,
+                    top, alpha, LightTexture.FULL_BRIGHT);
+            VfxDraw.triangle(consumer, pose, 0, -height, 0, 0.5F, 1.0F, b[0], b[1], b[2], 1.0F, 0.0F, a[0], a[1], a[2], 0.0F, 0.0F,
+                    bottom, alpha, LightTexture.FULL_BRIGHT);
+        }
         poseStack.popPose();
     }
 
-    private static final class VisualState {
-        private final long createdGameTime;
-        private float activationProgress;
-        private float lastRenderTime;
-        private int componentCount;
-        private boolean active;
-        private long lastActiveParticleTick;
+    private void drawBeam(PoseStack poseStack, MultiBufferSource buffers, float time, float activation, int rgb) {
+        VertexConsumer consumer = buffers.getBuffer(SelariumRenderTypes.additive(BEAM));
+        int alpha = VfxDraw.alpha(0.42F * activation);
+        for (int i = 0; i < 2; i++) {
+            poseStack.pushPose();
+            poseStack.translate(0.5F, 0.05F, 0.5F);
+            poseStack.mulPose(Axis.YP.rotationDegrees(time * 0.6F + i * 90.0F));
+            VfxDraw.verticalQuad(consumer, poseStack.last(), 0.2F, 2.6F, rgb, alpha, LightTexture.FULL_BRIGHT);
+            poseStack.popPose();
+        }
+    }
 
-        private VisualState(long createdGameTime, float activationProgress, boolean active, int componentCount, long lastActiveParticleTick, float lastRenderTime) {
-            this.createdGameTime = createdGameTime;
-            this.activationProgress = activationProgress;
-            this.lastRenderTime = lastRenderTime;
-            this.active = active;
-            this.componentCount = componentCount;
-            this.lastActiveParticleTick = lastActiveParticleTick;
+    // ---------------------------------------------------------------------------- helpers
+    private static ResourceLocation glyphTexture(String name) {
+        return tex("vfx/sigil/glyph/" + name + ".png");
+    }
+
+    private static ResourceLocation componentTexture(DustType type) {
+        return tex("vfx/sigil/component/" + type.getSerializedName() + ".png");
+    }
+
+    /** Distinct dust types shown as marks; the base Arcane dust placed at creation is not drawn on its own. */
+    private static List<DustType> visibleMarks(ArcaneSigilBlockEntity sigil) {
+        Map<DustType, Integer> counts = new EnumMap<>(DustType.class);
+        for (Map.Entry<DustDefinition, Integer> entry : sigil.getComponents().entrySet()) {
+            if (entry.getValue() > 0) {
+                counts.merge(entry.getKey().type(), entry.getValue(), Integer::sum);
+            }
+        }
+        int arcane = counts.getOrDefault(DustType.ARCANE, 0);
+        if (arcane <= 1) {
+            counts.remove(DustType.ARCANE);
+        } else {
+            counts.put(DustType.ARCANE, arcane - 1);
+        }
+        List<DustType> types = new ArrayList<>(counts.keySet());
+        types.sort(Comparator.comparingInt(DustPalette::priority));
+        return types.size() > MAX_MARKS ? types.subList(0, MAX_MARKS) : types;
+    }
+
+    private State stateFor(ArcaneSigilBlockEntity sigil, float time) {
+        long key = sigil.getBlockPos().asLong();
+        State state = states.get(key);
+        if (state == null || time < state.lastTime) {
+            state = new State(sigil.isActive() ? 1.0F : 0.0F, time);
+            states.put(key, state);
+        }
+        return state;
+    }
+
+    /** Smoothed activation (0..1) so rings unfold and fade instead of popping. */
+    private static final class State {
+        private float activation;
+        private float lastTime;
+
+        private State(float activation, float time) {
+            this.activation = activation;
+            this.lastTime = time;
         }
 
-        private void update(float time, boolean active, boolean animationsEnabled) {
-            float delta = Mth.clamp(time - lastRenderTime, 0.0F, 3.0F);
-            lastRenderTime = time;
-
-            if (!animationsEnabled) {
-                activationProgress = active ? 1.0F : 0.0F;
+        private void update(float time, boolean active, boolean animate) {
+            float delta = Mth.clamp(time - lastTime, 0.0F, 3.0F);
+            lastTime = time;
+            if (!animate) {
+                activation = active ? 1.0F : 0.0F;
                 return;
             }
-
             float target = active ? 1.0F : 0.0F;
-            int transitionTicks = active
-                    ? SelariumCommonConfig.SIGIL_ACTIVATION_TRANSITION_TICKS.get()
-                    : SelariumCommonConfig.SIGIL_DEACTIVATION_TRANSITION_TICKS.get();
-            activationProgress = approach(activationProgress, target, delta / Math.max(1, transitionTicks));
+            float step = delta / (active ? ACTIVATE_TICKS : DEACTIVATE_TICKS);
+            activation = activation < target ? Math.min(target, activation + step) : Math.max(target, activation - step);
         }
-
-        private static float approach(float current, float target, float step) {
-            if (current < target) {
-                return Math.min(target, current + step);
-            }
-            return Math.max(target, current - step);
-        }
-
     }
 }

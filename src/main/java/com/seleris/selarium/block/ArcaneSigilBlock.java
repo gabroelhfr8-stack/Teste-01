@@ -100,7 +100,7 @@ public class ArcaneSigilBlock extends BaseEntityBlock {
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
         if (level.isClientSide) {
-            return null;
+            return createTickerHelper(type, SelariumBlockEntities.ARCANE_SIGIL.get(), ArcaneSigilBlockEntity::clientTick);
         }
         return createTickerHelper(type, SelariumBlockEntities.ARCANE_SIGIL.get(), ArcaneSigilBlockEntity::serverTick);
     }

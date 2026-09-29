@@ -21,6 +21,12 @@ public final class ActiveWardIndex {
     private ActiveWardIndex() {
     }
 
+    /** Forget every indexed field (server shutdown). */
+    public static void clear() {
+        ACTIVE_SIGILS.clear();
+        ACTIVE_PROJECTIONS.clear();
+    }
+
     public static void update(ServerLevel level, BlockPos pos, WardFieldSource sigil) {
         if (sigil instanceof WardProjection projection) {
             updateProjection(projection);

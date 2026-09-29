@@ -5,6 +5,11 @@ import com.seleris.selarium.config.SelariumCommonConfig;
 import com.seleris.selarium.registry.SelariumBlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.RandomSource;
+import com.seleris.selarium.config.SelariumClientConfig;
+import com.seleris.selarium.particle.GlowParticleOptions;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Containers;
@@ -24,6 +29,8 @@ import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
@@ -34,6 +41,8 @@ import org.jetbrains.annotations.Nullable;
 
 public class ArcaneGrinderBlock extends BaseEntityBlock {
     public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
+    /** True while the grinder is processing a recipe: lights the runes, emits light and sparks. */
+    public static final BooleanProperty LIT = BlockStateProperties.LIT;
     private static final VoxelShape SHAPE = Shapes.or(box(0, 0, 0, 16, 4, 16),
             box(1, 4, 1, 15, 12, 4), box(1, 4, 12, 15, 12, 15),
             box(1, 4, 4, 4, 12, 12), box(12, 4, 4, 15, 12, 12),
@@ -41,7 +50,7 @@ public class ArcaneGrinderBlock extends BaseEntityBlock {
 
     public ArcaneGrinderBlock(Properties properties) {
         super(properties);
-        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH));
+        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(LIT, false));
     }
 
     @Override
@@ -71,7 +80,7 @@ public class ArcaneGrinderBlock extends BaseEntityBlock {
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<net.minecraft.world.level.block.Block, BlockState> builder) {
-        builder.add(FACING);
+        builder.add(FACING, LIT);
     }
 
     @Override
@@ -102,6 +111,28 @@ public class ArcaneGrinderBlock extends BaseEntityBlock {
             }
         }
         super.onRemove(state, level, pos, newState, isMoving);
+    }
+
+    /** Sparks and motes rising from the basin while a recipe is running. */
+    @Override
+    public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
+        if (!state.getValue(LIT) || !SelariumClientConfig.vfxEnabled() || !SelariumClientConfig.AMBIENT_PARTICLES.get()) {
+            return;
+        }
+        double cx = pos.getX() + 0.5D;
+        double cz = pos.getZ() + 0.5D;
+        if (random.nextInt(2) == 0) {
+            level.addParticle(GlowParticleOptions.spark(0x9CF0FF, 0.7F), cx + (random.nextDouble() - 0.5D) * 0.45D,
+                    pos.getY() + 0.45D, cz + (random.nextDouble() - 0.5D) * 0.45D, 0.0D, 0.03D, 0.0D);
+        }
+        if (random.nextInt(4) == 0) {
+            level.addParticle(GlowParticleOptions.wisp(0xB48CFF, 0.9F), cx + (random.nextDouble() - 0.5D) * 0.3D,
+                    pos.getY() + 0.85D, cz + (random.nextDouble() - 0.5D) * 0.3D, 0.0D, 0.02D, 0.0D);
+        }
+        if (random.nextInt(24) == 0) {
+            level.playLocalSound(cx, pos.getY() + 0.5D, cz, SoundEvents.GRINDSTONE_USE, SoundSource.BLOCKS, 0.25F,
+                    0.85F + random.nextFloat() * 0.3F, false);
+        }
     }
 
     @Nullable

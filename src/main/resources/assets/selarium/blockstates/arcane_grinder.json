@@ -1,18 +1,33 @@
 {
   "variants": {
-    "facing=north": {
+    "facing=north,lit=false": {
       "model": "selarium:block/arcane_grinder"
     },
-    "facing=east": {
+    "facing=north,lit=true": {
+      "model": "selarium:block/arcane_grinder_lit"
+    },
+    "facing=east,lit=false": {
       "model": "selarium:block/arcane_grinder",
       "y": 90
     },
-    "facing=south": {
+    "facing=east,lit=true": {
+      "model": "selarium:block/arcane_grinder_lit",
+      "y": 90
+    },
+    "facing=south,lit=false": {
       "model": "selarium:block/arcane_grinder",
       "y": 180
     },
-    "facing=west": {
+    "facing=south,lit=true": {
+      "model": "selarium:block/arcane_grinder_lit",
+      "y": 180
+    },
+    "facing=west,lit=false": {
       "model": "selarium:block/arcane_grinder",
+      "y": 270
+    },
+    "facing=west,lit=true": {
+      "model": "selarium:block/arcane_grinder_lit",
       "y": 270
     }
   }

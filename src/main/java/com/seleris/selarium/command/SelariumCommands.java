@@ -635,12 +635,15 @@ public final class SelariumCommands {
         return entry.getKey().getSerializedName() + " x" + entry.getValue();
     }
 
+    /** Component marks drawn around a sigil's ring before the rest are summarised as hidden. */
+    private static final int MAX_VISIBLE_COMPONENT_MARKS = 8;
+
     private static String formatVisualLayers(ArcaneSigilBlockEntity sigil, String detectedWard) {
         ArrayList<String> layers = new ArrayList<>();
         layers.add("base");
 
         Map<DustType, Integer> counts = collectVisualDustCounts(sigil);
-        int maxLayers = Math.max(0, SelariumCommonConfig.SIGIL_MAX_VISIBLE_COMPONENT_LAYERS.get());
+        int maxLayers = MAX_VISIBLE_COMPONENT_MARKS;
         int[] visible = {0};
         counts.entrySet().stream()
                 .sorted(Comparator.comparingInt(entry -> visualPriority(entry.getKey())))

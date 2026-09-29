@@ -2,6 +2,7 @@ package com.seleris.selarium.ward.effect;
 
 import com.seleris.selarium.config.SelariumCommonConfig;
 import com.seleris.selarium.ward.WardContext;
+import com.seleris.selarium.ward.WardFx;
 import com.seleris.selarium.ward.WardManaService;
 import com.seleris.selarium.ward.WardTargetingService;
 import net.minecraft.server.level.ServerPlayer;
@@ -34,6 +35,7 @@ public final class WardEffectUtils {
             if (hasFieldUpkeep(context) || WardManaService.consume(context.level(), context.pos(), context.sigil(), manaCost)) {
                 ally.addEffect(new MobEffectInstance(effect, durationTicks, amplifier, false, true, true));
                 afterApply.accept(ally);
+                WardFx.touch(context.level(), ally, context.sigil().getWardType());
             }
         }
     }
@@ -52,6 +54,7 @@ public final class WardEffectUtils {
             }
 
             action.accept(target);
+            WardFx.touch(context.level(), target, context.sigil().getWardType());
             affected++;
         }
         return affected;

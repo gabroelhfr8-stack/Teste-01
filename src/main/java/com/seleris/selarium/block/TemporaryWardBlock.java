@@ -6,13 +6,13 @@ import com.seleris.selarium.ward.ProjectionDisplayCache;
 import com.seleris.selarium.ward.WardAccessService;
 import com.seleris.selarium.ward.WardType;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
@@ -23,16 +23,14 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import java.util.EnumSet;
 
 public class TemporaryWardBlock extends Block {
-    private final boolean invisible;
-
-    public TemporaryWardBlock(Properties properties, boolean invisible) {
+    public TemporaryWardBlock(Properties properties) {
         super(properties);
-        this.invisible = invisible;
     }
 
+    /** Neighbouring wall blocks merge into one continuous surface instead of drawing every inner face. */
     @Override
-    public RenderShape getRenderShape(BlockState state) {
-        return invisible ? RenderShape.INVISIBLE : RenderShape.MODEL;
+    public boolean skipRendering(BlockState state, BlockState adjacentState, Direction direction) {
+        return adjacentState.is(this) || super.skipRendering(state, adjacentState, direction);
     }
 
     @Override public VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {

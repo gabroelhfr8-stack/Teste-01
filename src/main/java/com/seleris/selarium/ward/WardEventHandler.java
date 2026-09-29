@@ -2,6 +2,8 @@ package com.seleris.selarium.ward;
 
 import com.seleris.selarium.config.SelariumCommonConfig;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -53,6 +55,7 @@ public final class WardEventHandler {
             if (canAffect && ward.sigil().hasRecentPaidUpkeep(config.tickInterval().get() + 5)) {
                 event.setCanceled(true);
                 ward.sigil().recordWardDebug(1, 0, "teleport disrupted");
+                WardFx.burst(level, entity.position().add(0.0D, entity.getBbHeight() * 0.5D, 0.0D), WardType.DISRUPTION, 10, 0.4D);
                 return;
             }
         }
@@ -113,6 +116,7 @@ public final class WardEventHandler {
                 if (!oneItem.isEmpty()) {
                     event.getDrops().add(new ItemEntity(level, entity.getX(), entity.getY(), entity.getZ(), oneItem));
                     added = 1;
+                    WardFx.burst(level, entity.position().add(0.0D, 0.5D, 0.0D), WardType.BOUNTY, 8, 0.35D);
                 }
             }
             ward.sigil().recordWardDebug(added, 0, added > 0 ? "bounty added one item" : "bounty chance missed");
@@ -167,6 +171,9 @@ public final class WardEventHandler {
                 entity.setHealth(1.0F);
                 cooldowns.protectedUntil(entity.getUUID(), now + Math.max(1200, config.cooldownPerEntityTicks().get()));
                 ward.sigil().recordWardDebug(1, 0, "death prevented");
+                WardFx.burst(level, entity.position().add(0.0D, entity.getBbHeight() * 0.5D, 0.0D), WardType.IMMORTAL, 24, 0.6D);
+                WardFx.pulse(level, entity.blockPosition(), WardType.IMMORTAL, 4);
+                level.playSound(null, entity.blockPosition(), SoundEvents.TOTEM_USE, SoundSource.PLAYERS, 0.6F, 1.4F);
                 return true;
             }
         }
@@ -203,6 +210,7 @@ public final class WardEventHandler {
                         continue;
                     }
                     linked.hurt(event.getSource(), chainedDamage);
+                    WardFx.trail(level, sourceTarget.getEyePosition(), linked.getEyePosition(), WardType.SOUL_CHAIN, 8);
                     affected++;
                 }
             } finally {

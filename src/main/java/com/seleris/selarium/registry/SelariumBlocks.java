@@ -53,6 +53,7 @@ public final class SelariumBlocks {
                     .mapColor(MapColor.COLOR_PURPLE)
                     .strength(3.0F, 6.0F)
                     .sound(SoundType.COPPER)
+                    .lightLevel(state -> state.getValue(ArcaneGrinderBlock.LIT) ? 9 : 0)
                     .noOcclusion()
                     .requiresCorrectToolForDrops()));
 
@@ -69,7 +70,7 @@ public final class SelariumBlocks {
                     .mapColor(MapColor.COLOR_PURPLE)
                     .strength(6.0F, 18.0F)
                     .sound(SoundType.AMETHYST)
-                    .noLootTable(), false));
+                    .noLootTable()));
 
     public static final RegistryObject<Block> TANGIBLE_BARRIER_BLOCK = BLOCKS.register("tangible_barrier_block",
             () -> new TemporaryWardBlock(BlockBehaviour.Properties.of()
@@ -77,7 +78,7 @@ public final class SelariumBlocks {
                     .strength(-1.0F, 3_600_000.0F)
                     .sound(SoundType.AMETHYST)
                     .noLootTable()
-                    .noOcclusion(), true));
+                    .noOcclusion()));
 
     public static final RegistryObject<Block> PHASING_BLOCK = BLOCKS.register("phasing_block",
             () -> new PhasingBlock(BlockBehaviour.Properties.of()
@@ -182,8 +183,7 @@ public final class SelariumBlocks {
                             .mapColor(MapColor.COLOR_PURPLE)
                             .strength(1.0F)
                             .sound(ARCANE_CRYSTAL_SOUND)
-                            .lightLevel(state -> 4)
-                            .noOcclusion()));
+                                    .noOcclusion()));
 
     public static final RegistryObject<Block> ARCANE_CRYSTAL_CLUSTER = BLOCKS.register("arcane_crystal_cluster",
             () -> new ArcaneCrystalClusterBlock(14, 2, ArcaneCrystalClusterBlock.GrowthStage.CLUSTER,

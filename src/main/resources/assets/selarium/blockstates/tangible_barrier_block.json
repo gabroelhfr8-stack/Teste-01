@@ -1,7 +1,7 @@
 {
   "variants": {
     "": {
-      "model": "selarium:block/temporary_citadel_wall"
+      "model": "selarium:block/tangible_barrier_block"
     }
   }
 }

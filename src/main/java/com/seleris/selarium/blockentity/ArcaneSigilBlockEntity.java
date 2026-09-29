@@ -4,6 +4,10 @@ import com.seleris.selarium.config.SelariumCommonConfig;
 import com.seleris.selarium.dust.DustDefinition;
 import com.seleris.selarium.dust.DustPurity;
 import com.seleris.selarium.dust.DustType;
+import com.seleris.selarium.config.SelariumClientConfig;
+import com.seleris.selarium.particle.GlowParticleOptions;
+import com.seleris.selarium.ward.WardStyles;
+import net.minecraft.util.RandomSource;
 import com.seleris.selarium.registry.SelariumBlockEntities;
 import com.seleris.selarium.registry.SelariumBlocks;
 import com.seleris.selarium.ward.ActiveWardIndex;
@@ -25,6 +29,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
@@ -61,6 +66,10 @@ public class ArcaneSigilBlockEntity extends BlockEntity implements WardFieldSour
     private int lastUpkeepCost;
     private boolean lastUpkeepPaid;
     private String lastUpkeepDebug = "not paid yet";
+    // client-only bookkeeping used to detect visual transitions (never saved)
+    private boolean clientSeen;
+    private boolean clientWasActive;
+    private int clientMarkCount;
 
     public ArcaneSigilBlockEntity(BlockPos pos, BlockState state) {
         super(SelariumBlockEntities.ARCANE_SIGIL.get(), pos, state);
@@ -76,6 +85,86 @@ public class ArcaneSigilBlockEntity extends BlockEntity implements WardFieldSour
             if (!sigil.isActive() && !sigil.temporaryWardBlocks.isEmpty()) sigil.cleanupTemporaryWardBlocks();
             WardManager.tick(new WardContext(serverLevel, pos, state, sigil));
         }
+    }
+
+    /**
+     * While active the sigil draws its ward field, so the renderer must be invoked even when the block
+     * itself is off-screen; the box therefore grows to the field's reach.
+     */
+    @Override
+    public AABB getRenderBoundingBox() {
+        if (active) {
+            return new AABB(worldPosition).inflate(Math.max(1, range) + 1.0D);
+        }
+        return new AABB(worldPosition).inflate(0.5D, 1.5D, 0.5D);
+    }
+
+    /** Client-side ticker: spawns the ambient and transition particles of the ritual circle. */
+    public static void clientTick(Level level, BlockPos pos, BlockState state, ArcaneSigilBlockEntity sigil) {
+        sigil.tickClientEffects(level, pos);
+    }
+
+    private void tickClientEffects(Level level, BlockPos pos) {
+        if (!SelariumClientConfig.vfxEnabled() || !SelariumClientConfig.AMBIENT_PARTICLES.get()) {
+            clientSeen = false;
+            return;
+        }
+        int marks = Math.max(0, getTotalComponents() - getComponentCount(DustType.ARCANE, DustPurity.BASIC));
+        if (!clientSeen) {
+            clientSeen = true;
+            clientWasActive = active;
+            clientMarkCount = marks;
+            return;
+        }
+
+        RandomSource random = level.random;
+        double cx = pos.getX() + 0.5D;
+        double cy = pos.getY() + 0.1D;
+        double cz = pos.getZ() + 0.5D;
+        WardStyles.Style style = WardStyles.of(wardType);
+        int primary = wardType == WardType.NONE ? 0xC9C2EE : style.primary();
+        int secondary = wardType == WardType.NONE ? 0xEDE9FF : style.secondary();
+
+        if (marks > clientMarkCount) {
+            for (int i = 0; i < 8; i++) {
+                double angle = random.nextDouble() * Math.PI * 2.0D;
+                double radius = 0.15D + random.nextDouble() * 0.3D;
+                level.addParticle(GlowParticleOptions.spark(0xE6DBFF, 0.8F), cx + Math.cos(angle) * radius, cy + 0.05D,
+                        cz + Math.sin(angle) * radius, 0.0D, 0.02D, 0.0D);
+            }
+        }
+        if (active && !clientWasActive) {
+            level.addParticle(GlowParticleOptions.ring(secondary, Math.max(1, range)), cx, pos.getY() + 0.06D, cz, 0.0D, 0.0D, 0.0D);
+            level.addParticle(GlowParticleOptions.ring(primary, Math.max(1, range) * 0.55F), cx, pos.getY() + 0.08D, cz, 0.0D, 0.0D, 0.0D);
+            for (int i = 0; i < 16; i++) {
+                double angle = random.nextDouble() * Math.PI * 2.0D;
+                double radius = 0.2D + random.nextDouble() * 0.28D;
+                level.addParticle(GlowParticleOptions.rune(secondary, 1.0F), cx + Math.cos(angle) * radius, cy + 0.1D,
+                        cz + Math.sin(angle) * radius, 0.0D, 0.03D + random.nextDouble() * 0.03D, 0.0D);
+                level.addParticle(GlowParticleOptions.wisp(primary, 1.0F), cx + Math.cos(angle) * radius, cy + 0.05D,
+                        cz + Math.sin(angle) * radius, -Math.cos(angle) * 0.01D, 0.04D, -Math.sin(angle) * 0.01D);
+            }
+        }
+        if (!active && clientWasActive) {
+            for (int i = 0; i < 10; i++) {
+                double angle = random.nextDouble() * Math.PI * 2.0D;
+                double radius = 0.1D + random.nextDouble() * 0.35D;
+                level.addParticle(GlowParticleOptions.wisp(primary, 0.8F), cx + Math.cos(angle) * radius, cy + 0.05D,
+                        cz + Math.sin(angle) * radius, 0.0D, 0.015D, 0.0D);
+            }
+        }
+        if (active && level.getGameTime() % 5L == 0L) {
+            double angle = random.nextDouble() * Math.PI * 2.0D;
+            double radius = 0.34D + random.nextDouble() * 0.12D;
+            level.addParticle(GlowParticleOptions.wisp(primary, 0.85F), cx + Math.cos(angle) * radius, cy,
+                    cz + Math.sin(angle) * radius, 0.0D, 0.018D + random.nextDouble() * 0.012D, 0.0D);
+            if (random.nextInt(3) == 0) {
+                level.addParticle(GlowParticleOptions.spark(secondary, 0.7F), cx + Math.cos(angle) * radius, cy + 0.15D,
+                        cz + Math.sin(angle) * radius, 0.0D, 0.01D, 0.0D);
+            }
+        }
+        clientWasActive = active;
+        clientMarkCount = marks;
     }
 
     public UUID getOwner() {

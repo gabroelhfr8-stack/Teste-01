@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/cube_all",
+  "textures": {
+    "all": "selarium:block/tangible_barrier_block"
+  }
+}

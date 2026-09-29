@@ -4,82 +4,98 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.seleris.selarium.Selarium;
 import com.seleris.selarium.blockentity.ManaTankBlockEntity;
+import com.seleris.selarium.client.vfx.SelariumRenderTypes;
+import com.seleris.selarium.client.vfx.VfxDraw;
+import com.seleris.selarium.config.SelariumClientConfig;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
-import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.Level;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 
+/** Draws the swirling mana inside the tank's glass; its height follows the stored mana. */
 public class ManaTankRenderer implements BlockEntityRenderer<ManaTankBlockEntity> {
-    private static final ResourceLocation FILL_TEXTURE = ResourceLocation.fromNamespaceAndPath(Selarium.MOD_ID, "textures/block/mana_tank_fill.png");
-    private static final float MIN = 0.21F;
-    private static final float MAX = 0.79F;
-    private static final float MIN_Y = 0.19F;
-    private static final float MAX_Y = 0.81F;
-    private static final float OFFSET = 0.004F;
+    private static final ResourceLocation FLUID = ResourceLocation.fromNamespaceAndPath(Selarium.MOD_ID, "textures/vfx/mana_fluid.png");
+    private static final ResourceLocation GLOW = ResourceLocation.fromNamespaceAndPath(Selarium.MOD_ID, "textures/vfx/glow.png");
+
+    /** Outline of the glass body in 1/16 blocks: two overlapping boxes forming a chamfered square. */
+    private static final float[][] OUTLINE = {
+            {4, 3}, {12, 3}, {12, 4}, {13, 4}, {13, 12}, {12, 12}, {12, 13}, {4, 13}, {4, 12}, {3, 12}, {3, 4}, {4, 4}};
+    private static final float MIN_Y = 4.2F / 16.0F;
+    private static final float MAX_Y = 12.8F / 16.0F;
+    private static final float INSET = 0.985F;
 
     public ManaTankRenderer(BlockEntityRendererProvider.Context context) {
     }
 
     @Override
-    public void render(ManaTankBlockEntity tank, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+    public void render(ManaTankBlockEntity tank, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource,
+                       int packedLight, int packedOverlay) {
         float ratio = tank.getVisualFillRatio();
-        if (ratio <= 0.0F) {
+        Level level = tank.getLevel();
+        if (ratio <= 0.0F || level == null) {
             return;
         }
+        boolean animate = SelariumClientConfig.vfxEnabled();
+        float time = animate ? level.getGameTime() + partialTick : 0.0F;
+        float top = MIN_Y + (MAX_Y - MIN_Y) * ratio;
 
-        float fillTop = MIN_Y + (MAX_Y - MIN_Y) * ratio;
-        VertexConsumer consumer = bufferSource.getBuffer(RenderType.entityTranslucent(FILL_TEXTURE));
+        VertexConsumer consumer = bufferSource.getBuffer(SelariumRenderTypes.glow(FLUID));
         PoseStack.Pose pose = poseStack.last();
-        for (Direction face : Direction.Plane.HORIZONTAL) {
-            drawFrontFill(consumer, pose.pose(), pose.normal(), face, fillTop, ratio);
+        Matrix4f matrix = pose.pose();
+        Matrix3f normal = pose.normal();
+        float scrollU = time * 0.004F;
+        float scrollV = time * -0.006F;
+        int alpha = 215;
+
+        float perimeter = 0.0F;
+        for (int i = 0; i < OUTLINE.length; i++) {
+            float[] a = OUTLINE[i];
+            float[] b = OUTLINE[(i + 1) % OUTLINE.length];
+            float ax = point(a[0]), az = point(a[1]), bx = point(b[0]), bz = point(b[1]);
+            float length = (float) Math.hypot(bx - ax, bz - az);
+            float u0 = perimeter * 1.4F + scrollU;
+            float u1 = (perimeter + length) * 1.4F + scrollU;
+            float v0 = MIN_Y * 1.6F + scrollV;
+            float v1 = top * 1.6F + scrollV;
+            float nx = bz - az, nz = -(bx - ax);
+            float nl = Math.max(1.0E-4F, (float) Math.hypot(nx, nz));
+            nx /= nl;
+            nz /= nl;
+            SelariumRenderUtil.vertex(consumer, matrix, normal, ax, MIN_Y, az, u0, v0, LightTexture.FULL_BRIGHT, 255, 255, 255, alpha, nx, 0.0F, nz);
+            SelariumRenderUtil.vertex(consumer, matrix, normal, bx, MIN_Y, bz, u1, v0, LightTexture.FULL_BRIGHT, 255, 255, 255, alpha, nx, 0.0F, nz);
+            SelariumRenderUtil.vertex(consumer, matrix, normal, bx, top, bz, u1, v1, LightTexture.FULL_BRIGHT, 255, 255, 255, alpha, nx, 0.0F, nz);
+            SelariumRenderUtil.vertex(consumer, matrix, normal, ax, top, az, u0, v1, LightTexture.FULL_BRIGHT, 255, 255, 255, alpha, nx, 0.0F, nz);
+            perimeter += length;
         }
-        drawTop(consumer, pose.pose(), pose.normal(), fillTop);
-    }
 
-    private static void drawFrontFill(VertexConsumer consumer, Matrix4f matrix, Matrix3f normal, Direction facing, float fillTop, float ratio) {
-        float vTop = 1.0F - ratio;
-        switch (facing) {
-            case SOUTH -> {
-                vertex(consumer, matrix, normal, MAX, MIN_Y, MAX + OFFSET, 0.0F, 1.0F, 0.0F, 0.0F, 1.0F);
-                vertex(consumer, matrix, normal, MIN, MIN_Y, MAX + OFFSET, 1.0F, 1.0F, 0.0F, 0.0F, 1.0F);
-                vertex(consumer, matrix, normal, MIN, fillTop, MAX + OFFSET, 1.0F, vTop, 0.0F, 0.0F, 1.0F);
-                vertex(consumer, matrix, normal, MAX, fillTop, MAX + OFFSET, 0.0F, vTop, 0.0F, 0.0F, 1.0F);
-            }
-            case EAST -> {
-                vertex(consumer, matrix, normal, MAX + OFFSET, MIN_Y, MIN, 0.0F, 1.0F, 1.0F, 0.0F, 0.0F);
-                vertex(consumer, matrix, normal, MAX + OFFSET, MIN_Y, MAX, 1.0F, 1.0F, 1.0F, 0.0F, 0.0F);
-                vertex(consumer, matrix, normal, MAX + OFFSET, fillTop, MAX, 1.0F, vTop, 1.0F, 0.0F, 0.0F);
-                vertex(consumer, matrix, normal, MAX + OFFSET, fillTop, MIN, 0.0F, vTop, 1.0F, 0.0F, 0.0F);
-            }
-            case WEST -> {
-                vertex(consumer, matrix, normal, MIN - OFFSET, MIN_Y, MAX, 0.0F, 1.0F, -1.0F, 0.0F, 0.0F);
-                vertex(consumer, matrix, normal, MIN - OFFSET, MIN_Y, MIN, 1.0F, 1.0F, -1.0F, 0.0F, 0.0F);
-                vertex(consumer, matrix, normal, MIN - OFFSET, fillTop, MIN, 1.0F, vTop, -1.0F, 0.0F, 0.0F);
-                vertex(consumer, matrix, normal, MIN - OFFSET, fillTop, MAX, 0.0F, vTop, -1.0F, 0.0F, 0.0F);
-            }
-            default -> {
-                vertex(consumer, matrix, normal, MIN, MIN_Y, MIN - OFFSET, 0.0F, 1.0F, 0.0F, 0.0F, -1.0F);
-                vertex(consumer, matrix, normal, MAX, MIN_Y, MIN - OFFSET, 1.0F, 1.0F, 0.0F, 0.0F, -1.0F);
-                vertex(consumer, matrix, normal, MAX, fillTop, MIN - OFFSET, 1.0F, vTop, 0.0F, 0.0F, -1.0F);
-                vertex(consumer, matrix, normal, MIN, fillTop, MIN - OFFSET, 0.0F, vTop, 0.0F, 0.0F, -1.0F);
-            }
+        // surface: centre rectangle plus the two side strips (no overlap, so no double-blended patches)
+        topRect(consumer, matrix, normal, 4, 3, 12, 13, top, scrollU, scrollV, 255);
+        topRect(consumer, matrix, normal, 3, 4, 4, 12, top, scrollU, scrollV, 255);
+        topRect(consumer, matrix, normal, 12, 4, 13, 12, top, scrollU, scrollV, 255);
+
+        // a soft halo on the surface makes a nearly full tank read as "charged"
+        if (animate && ratio > 0.55F) {
+            VertexConsumer halo = bufferSource.getBuffer(SelariumRenderTypes.additive(GLOW));
+            float pulse = 0.6F + 0.4F * (float) Math.sin(time * 0.1F);
+            VfxDraw.groundQuad(halo, poseStack, 0.30F, top + 0.004F, 0.0F, 0x7EE6F2,
+                    VfxDraw.alpha((ratio - 0.55F) * 0.9F * pulse), LightTexture.FULL_BRIGHT);
         }
     }
 
-    private static void drawTop(VertexConsumer consumer, Matrix4f matrix, Matrix3f normal, float y) {
-        vertex(consumer, matrix, normal, MIN, y, MIN, 0.0F, 0.0F, 0.0F, 1.0F, 0.0F);
-        vertex(consumer, matrix, normal, MIN, y, MAX, 0.0F, 1.0F, 0.0F, 1.0F, 0.0F);
-        vertex(consumer, matrix, normal, MAX, y, MAX, 1.0F, 1.0F, 0.0F, 1.0F, 0.0F);
-        vertex(consumer, matrix, normal, MAX, y, MIN, 1.0F, 0.0F, 0.0F, 1.0F, 0.0F);
+    private static float point(float pixels) {
+        return 0.5F + (pixels / 16.0F - 0.5F) * INSET;
     }
 
-    private static void vertex(VertexConsumer consumer, Matrix4f matrix, Matrix3f normal, float x, float y, float z, float u, float v, float normalX, float normalY, float normalZ) {
-        SelariumRenderUtil.vertex(consumer, matrix, normal, x, y, z, u, v,
-                LightTexture.FULL_BRIGHT, 225, 245, 255, 210, normalX, normalY, normalZ);
+    private static void topRect(VertexConsumer consumer, Matrix4f matrix, Matrix3f normal, float x0, float z0, float x1, float z1,
+                                float y, float scrollU, float scrollV, int brightness) {
+        float ax = point(x0), az = point(z0), bx = point(x1), bz = point(z1);
+        SelariumRenderUtil.vertex(consumer, matrix, normal, ax, y, az, ax * 1.6F + scrollU, az * 1.6F + scrollV, LightTexture.FULL_BRIGHT, brightness, brightness, brightness, 235, 0.0F, 1.0F, 0.0F);
+        SelariumRenderUtil.vertex(consumer, matrix, normal, ax, y, bz, ax * 1.6F + scrollU, bz * 1.6F + scrollV, LightTexture.FULL_BRIGHT, brightness, brightness, brightness, 235, 0.0F, 1.0F, 0.0F);
+        SelariumRenderUtil.vertex(consumer, matrix, normal, bx, y, bz, bx * 1.6F + scrollU, bz * 1.6F + scrollV, LightTexture.FULL_BRIGHT, brightness, brightness, brightness, 235, 0.0F, 1.0F, 0.0F);
+        SelariumRenderUtil.vertex(consumer, matrix, normal, bx, y, az, bx * 1.6F + scrollU, az * 1.6F + scrollV, LightTexture.FULL_BRIGHT, brightness, brightness, brightness, 235, 0.0F, 1.0F, 0.0F);
     }
 }

@@ -3,6 +3,9 @@ package com.seleris.selarium.block;
 import com.seleris.selarium.blockentity.InscriptionBenchBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.util.RandomSource;
+import com.seleris.selarium.config.SelariumClientConfig;
+import com.seleris.selarium.particle.GlowParticleOptions;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
@@ -57,6 +60,15 @@ public final class InscriptionBenchBlock extends BaseEntityBlock {
     }
 
     @Override public RenderShape getRenderShape(BlockState state) { return RenderShape.MODEL; }
+
+    /** An occasional violet glint above the open book. */
+    @Override public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
+        if (random.nextInt(14) != 0 || !SelariumClientConfig.vfxEnabled() || !SelariumClientConfig.AMBIENT_PARTICLES.get()) {
+            return;
+        }
+        level.addParticle(GlowParticleOptions.spark(0xC9A8FF, 0.6F), pos.getX() + 0.35D + random.nextDouble() * 0.3D,
+                pos.getY() + 0.95D, pos.getZ() + 0.35D + random.nextDouble() * 0.3D, 0.0D, 0.01D, 0.0D);
+    }
 
     @Override public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player,
                                            InteractionHand hand, BlockHitResult hit) {

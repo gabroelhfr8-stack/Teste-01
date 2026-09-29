@@ -1,5 +1,6 @@
 package com.seleris.selarium.blockentity;
 
+import com.seleris.selarium.block.ArcaneGrinderBlock;
 import com.seleris.selarium.config.SelariumCommonConfig;
 import com.seleris.selarium.grinder.menu.ArcaneGrinderMenu;
 import com.seleris.selarium.grinder.recipe.ArcaneGrindingRecipe;
@@ -75,12 +76,14 @@ public class ArcaneGrinderBlockEntity extends BlockEntity implements WorldlyCont
     public static void serverTick(Level level, BlockPos pos, BlockState state, ArcaneGrinderBlockEntity grinder) {
         if (!SelariumCommonConfig.ARCANE_GRINDER_ENABLED.get()) {
             grinder.resetProgress();
+            setLit(level, pos, state, false);
             return;
         }
 
         Optional<ArcaneGrindingRecipe> recipe = grinder.findRecipe(level);
         if (recipe.isEmpty() || !grinder.canCraft(recipe.get())) {
             grinder.resetProgress();
+            setLit(level, pos, state, false);
             return;
         }
 
@@ -92,12 +95,20 @@ public class ArcaneGrinderBlockEntity extends BlockEntity implements WorldlyCont
 
         grinder.maxProgress = currentRecipe.processingTime();
         grinder.progress++;
+        setLit(level, pos, state, true);
         if (grinder.progress >= grinder.maxProgress) {
             grinder.craft(currentRecipe);
             grinder.progress = 0;
             grinder.activeRecipeId = null;
         }
         grinder.setChanged();
+    }
+
+    /** Mirrors the "working" flag into the block state so it drives light, model and particles. */
+    private static void setLit(Level level, BlockPos pos, BlockState state, boolean lit) {
+        if (state.hasProperty(ArcaneGrinderBlock.LIT) && state.getValue(ArcaneGrinderBlock.LIT) != lit) {
+            level.setBlock(pos, state.setValue(ArcaneGrinderBlock.LIT, lit), 3);
+        }
     }
 
     public int getProgress() {

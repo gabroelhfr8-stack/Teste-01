@@ -174,33 +174,6 @@ public final class SelariumCommonConfig {
     public static final ForgeConfigSpec.BooleanValue ARCANE_CRYSTAL_RANDOM_TICK_ENABLED;
     public static final ForgeConfigSpec.BooleanValue ARCANE_CRYSTAL_SHIMMER_SOUND_ENABLED;
     public static final ForgeConfigSpec.IntValue ARCANE_CRYSTAL_SHIMMER_SOUND_CHANCE;
-    public static final ForgeConfigSpec.BooleanValue SIGIL_ANIMATIONS_ENABLED;
-    public static final ForgeConfigSpec.BooleanValue SIGIL_FLOATING_WHEN_ACTIVE;
-    public static final ForgeConfigSpec.BooleanValue SIGIL_ACTIVE_BOBBING_ENABLED;
-    public static final ForgeConfigSpec.BooleanValue SIGIL_ENABLE_PARTICLES;
-    public static final ForgeConfigSpec.IntValue SIGIL_ACTIVE_PARTICLE_INTERVAL;
-    public static final ForgeConfigSpec.IntValue SIGIL_ACTIVATION_TRANSITION_TICKS;
-    public static final ForgeConfigSpec.IntValue SIGIL_DEACTIVATION_TRANSITION_TICKS;
-    public static final ForgeConfigSpec.IntValue SIGIL_ACTIVATION_PARTICLE_BURST;
-    public static final ForgeConfigSpec.IntValue SIGIL_DEACTIVATION_PARTICLE_BURST;
-    public static final ForgeConfigSpec.BooleanValue SIGIL_COMPONENT_LAYERS_ENABLED;
-    public static final ForgeConfigSpec.IntValue SIGIL_MAX_VISIBLE_COMPONENT_LAYERS;
-    public static final ForgeConfigSpec.IntValue SIGIL_COMPONENT_LAYER_ALPHA;
-    public static final ForgeConfigSpec.IntValue SIGIL_EXTRA_COMPONENT_LAYER_ALPHA;
-    public static final ForgeConfigSpec.IntValue SIGIL_WARD_LAYER_ALPHA;
-    public static final ForgeConfigSpec.DoubleValue SIGIL_INACTIVE_COMPONENT_ROTATION_SPEED;
-    public static final ForgeConfigSpec.DoubleValue SIGIL_COMPONENT_LAYER_ROTATION_SPEED;
-    public static final ForgeConfigSpec.DoubleValue SIGIL_WARD_LAYER_ROTATION_SPEED;
-    public static final ForgeConfigSpec.DoubleValue SIGIL_ACTIVE_PRIMARY_ROTATION_SPEED;
-    public static final ForgeConfigSpec.DoubleValue SIGIL_ACTIVE_SECONDARY_ROTATION_SPEED;
-    public static final ForgeConfigSpec.DoubleValue SIGIL_ACTIVE_FLOAT_HEIGHT;
-    public static final ForgeConfigSpec.DoubleValue SIGIL_ACTIVE_BOBBING_AMPLITUDE;
-    public static final ForgeConfigSpec.DoubleValue SIGIL_ACTIVE_BOBBING_SPEED;
-    public static final ForgeConfigSpec.BooleanValue ENABLE_MANA_HUD;
-    public static final ForgeConfigSpec.BooleanValue MANA_HUD_SHOW_NUMBERS;
-    public static final ForgeConfigSpec.IntValue MANA_HUD_X;
-    public static final ForgeConfigSpec.IntValue MANA_HUD_Y;
-    public static final ForgeConfigSpec.BooleanValue MANA_HUD_SHOW_GROWTH_FLASH;
     public static final ForgeConfigSpec.BooleanValue DEBUG_COMMANDS_ENABLED;
     public static final ForgeConfigSpec.BooleanValue CODEX_ENABLED;
     public static final ForgeConfigSpec.BooleanValue WARDING_GRIMOIRE_ENABLED;
@@ -410,50 +383,6 @@ public final class SelariumCommonConfig {
         builder.push("sigils");
         SIGIL_MAX_COMPONENTS = builder.comment("Maximum stored components on a sigil, including the base Arcane component placed at creation.")
                 .defineInRange("sigilMaxComponents", 8, 1, 64);
-        SIGIL_ANIMATIONS_ENABLED = builder.comment("Client-side visual toggle for animated sigil overlays. This does not change sigil logic.")
-                .define("sigilAnimationsEnabled", true);
-        SIGIL_FLOATING_WHEN_ACTIVE = builder.comment("If true, active sigils render slightly above the floor.")
-                .define("sigilFloatingWhenActive", true);
-        SIGIL_ACTIVE_BOBBING_ENABLED = builder.comment("If true, active sigils use a subtle vertical bobbing animation.")
-                .define("sigilActiveBobbingEnabled", true);
-        SIGIL_ENABLE_PARTICLES = builder.comment("If true, sigils emit subtle client-side particles when components are added, activated, and while active.")
-                .define("sigilEnableParticles", true);
-        SIGIL_ACTIVE_PARTICLE_INTERVAL = builder.comment("Client ticks between subtle ambient particles from active sigils.")
-                .defineInRange("sigilActiveParticleInterval", 18, 1, 20 * 60);
-        SIGIL_ACTIVATION_TRANSITION_TICKS = builder.comment("Client-side visual ticks for sigils to ease from inactive to active.")
-                .defineInRange("sigilActivationTransitionTicks", 24, 1, 20 * 60);
-        SIGIL_DEACTIVATION_TRANSITION_TICKS = builder.comment("Client-side visual ticks for sigils to ease from active back to inactive.")
-                .defineInRange("sigilDeactivationTransitionTicks", 28, 1, 20 * 60);
-        SIGIL_ACTIVATION_PARTICLE_BURST = builder.comment("Number of subtle particles emitted when a sigil visually activates.")
-                .defineInRange("sigilActivationParticleBurst", 10, 0, 100);
-        SIGIL_DEACTIVATION_PARTICLE_BURST = builder.comment("Number of subtle particles emitted when a sigil visually deactivates.")
-                .defineInRange("sigilDeactivationParticleBurst", 4, 0, 100);
-        SIGIL_COMPONENT_LAYERS_ENABLED = builder.comment("If true, visible dust components add subtle composited sigil layers instead of being replaced by the ward overlay.")
-                .define("sigilComponentLayersEnabled", true);
-        SIGIL_MAX_VISIBLE_COMPONENT_LAYERS = builder.comment("Maximum distinct dust component layers rendered on a sigil. Repeated dusts intensify one layer instead of drawing duplicates.")
-                .defineInRange("sigilMaxVisibleComponentLayers", 4, 0, 10);
-        SIGIL_COMPONENT_LAYER_ALPHA = builder.comment("Base alpha for primary component sigil layers.")
-                .defineInRange("sigilComponentLayerAlpha", 108, 0, 255);
-        SIGIL_EXTRA_COMPONENT_LAYER_ALPHA = builder.comment("Base alpha for component layers beyond the first three visible layers.")
-                .defineInRange("sigilExtraComponentLayerAlpha", 62, 0, 255);
-        SIGIL_WARD_LAYER_ALPHA = builder.comment("Base alpha for the final ward signature overlay.")
-                .defineInRange("sigilWardLayerAlpha", 122, 0, 255);
-        SIGIL_INACTIVE_COMPONENT_ROTATION_SPEED = builder.comment("Degrees per client tick for inactive component or resolved ward overlays.")
-                .defineInRange("sigilInactiveComponentRotationSpeed", 0.25D, -20.0D, 20.0D);
-        SIGIL_COMPONENT_LAYER_ROTATION_SPEED = builder.comment("Degrees per client tick for composited dust component layers while the sigil is inactive.")
-                .defineInRange("sigilComponentLayerRotationSpeed", 0.18D, -20.0D, 20.0D);
-        SIGIL_WARD_LAYER_ROTATION_SPEED = builder.comment("Degrees per client tick for the final ward signature layer while the sigil is inactive.")
-                .defineInRange("sigilWardLayerRotationSpeed", 0.28D, -20.0D, 20.0D);
-        SIGIL_ACTIVE_PRIMARY_ROTATION_SPEED = builder.comment("Degrees per client tick for the main overlay of active sigils.")
-                .defineInRange("sigilActivePrimaryRotationSpeed", 1.2D, -40.0D, 40.0D);
-        SIGIL_ACTIVE_SECONDARY_ROTATION_SPEED = builder.comment("Degrees per client tick for the active energy overlay. Negative values rotate counter to the main overlay.")
-                .defineInRange("sigilActiveSecondaryRotationSpeed", -0.8D, -40.0D, 40.0D);
-        SIGIL_ACTIVE_FLOAT_HEIGHT = builder.comment("Height in blocks added to active sigil rendering when floating is enabled.")
-                .defineInRange("sigilActiveFloatHeight", 0.055D, 0.0D, 0.5D);
-        SIGIL_ACTIVE_BOBBING_AMPLITUDE = builder.comment("Maximum vertical bobbing amplitude in blocks for active sigils.")
-                .defineInRange("sigilActiveBobbingAmplitude", 0.018D, 0.0D, 0.25D);
-        SIGIL_ACTIVE_BOBBING_SPEED = builder.comment("Radians per client tick for active sigil bobbing.")
-                .defineInRange("sigilActiveBobbingSpeed", 0.16D, 0.0D, 2.0D);
         builder.pop();
 
         builder.push("mana_tank");
@@ -547,15 +476,6 @@ public final class SelariumCommonConfig {
                 .define("arcaneCrystalShimmerSoundEnabled", true);
         ARCANE_CRYSTAL_SHIMMER_SOUND_CHANCE = builder.comment("Percent chance to play the shimmer sound on a successful growth event.")
                 .defineInRange("arcaneCrystalShimmerSoundChance", 70, 0, 100);
-        builder.pop();
-
-        builder.push("hud");
-        ENABLE_MANA_HUD = builder.comment("Client-side toggle for the simple mana HUD overlay.")
-                .define("enableManaHud", true);
-        MANA_HUD_SHOW_NUMBERS = builder.define("manaHudShowNumbers", true);
-        MANA_HUD_X = builder.defineInRange("manaHudX", 10, 0, 10000);
-        MANA_HUD_Y = builder.defineInRange("manaHudY", 10, 0, 10000);
-        MANA_HUD_SHOW_GROWTH_FLASH = builder.define("manaHudShowGrowthFlash", true);
         builder.pop();
 
         builder.push("debug");

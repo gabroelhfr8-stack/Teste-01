@@ -3,6 +3,9 @@ package com.seleris.selarium.block;
 import com.seleris.selarium.blockentity.ManaTankBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.util.RandomSource;
+import com.seleris.selarium.config.SelariumClientConfig;
+import com.seleris.selarium.particle.GlowParticleOptions;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -71,6 +74,23 @@ public class ManaTankBlock extends BaseEntityBlock {
     @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
         return new ManaTankBlockEntity(pos, state);
+    }
+
+    /** Motes of mana drifting up through the liquid; denser the fuller the tank. */
+    @Override
+    public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
+        if (!SelariumClientConfig.vfxEnabled() || !SelariumClientConfig.AMBIENT_PARTICLES.get()
+                || !(level.getBlockEntity(pos) instanceof ManaTankBlockEntity tank)) {
+            return;
+        }
+        float ratio = tank.getVisualFillRatio();
+        if (ratio <= 0.0F || random.nextFloat() > 0.35F + 0.4F * ratio) {
+            return;
+        }
+        double top = 4.2D / 16.0D + (12.8D - 4.2D) / 16.0D * ratio;
+        level.addParticle(GlowParticleOptions.wisp(0x7EE6F2, 0.6F), pos.getX() + 0.3D + random.nextDouble() * 0.4D,
+                pos.getY() + 0.28D + random.nextDouble() * Math.max(0.05D, top - 0.28D), pos.getZ() + 0.3D + random.nextDouble() * 0.4D,
+                0.0D, 0.012D, 0.0D);
     }
 
     @Override

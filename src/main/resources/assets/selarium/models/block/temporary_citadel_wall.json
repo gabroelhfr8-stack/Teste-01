@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:block/cube_all",
   "textures": {
-    "all": "selarium:block/arcane_block"
+    "all": "selarium:block/temporary_citadel_wall"
   }
 }

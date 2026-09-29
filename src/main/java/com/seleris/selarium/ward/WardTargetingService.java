@@ -7,7 +7,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
 import net.minecraft.world.entity.boss.wither.WitherBoss;
-import net.minecraft.world.phys.AABB;
 
 import java.util.List;
 import java.util.Optional;
@@ -21,8 +20,8 @@ public final class WardTargetingService {
     }
 
     public static List<LivingEntity> findInvaders(ServerLevel level, BlockPos pos, WardFieldSource sigil, int range, boolean includeHostileMobs, boolean includePlayers, boolean includeBosses) {
-        AABB box = new AABB(pos).inflate(Math.max(1, range));
-        return level.getEntitiesOfClass(LivingEntity.class, box, entity -> isInvader(sigil, entity, includeHostileMobs, includePlayers, includeBosses));
+        return WardArea.of(level, pos, range).entities(LivingEntity.class,
+                entity -> isInvader(sigil, entity, includeHostileMobs, includePlayers, includeBosses));
     }
 
     public static Optional<ServerPlayer> findOwnerInRange(ServerLevel level, BlockPos pos, WardFieldSource sigil, int range) {
