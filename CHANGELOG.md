@@ -24,15 +24,24 @@
 - Ward activation, deactivation and scroll casting have sound cues; a successful attunement ritual plays a chime with a
   ring and rune burst.
 
+### Interface
+- Codex: a **Ward Atlas** page shows every ward's glyph in a grid; click one to read its recipe, range, upkeep and effect.
+  The former 290-line text page is now a short introduction.
+- Warding Grimoire: tab widths follow their labels (no more clipped "Overvie"/"Advance").
+
 ### Progression and text
-- 17 advancements (English and Portuguese) from the first crystal to discovering every ward.
+- 17 advancements (English and Portuguese) with their own tab and stone background, from the first crystal to
+  discovering every ward.
 - Scrolls remember the creator's name; tooltips show the ward (tinted), its category and the creator instead of a UUID.
 - Portuguese translation restored with accents; dusts are named consistently ("Poeira de Foco Refinada") in items, GUI
   labels and the Codex.
 
 ### Tooling and CI
-- GitHub Actions: asset validation, compile + Forge GameTests + server-log check, and a client smoke test that boots
-  the real game under Xvfb with software OpenGL and takes screenshots.
+- GitHub Actions: asset validation, compile + Forge GameTests (now including one paid cycle of every ward next to
+  mobs, items and blocks) + server-log check, and a client smoke test that boots the real game under Xvfb with
+  software OpenGL, builds a showcase, opens every screen and takes screenshots (the README gallery comes from it).
+- Fixed while building the smoke test: glow textures used the vanilla `ADDITIVE_TRANSPARENCY` (ONE, ONE) that ignores
+  alpha and drew as solid quads; they now use `LIGHTNING_TRANSPARENCY` (SRC_ALPHA, ONE).
 - `tools/validate_assets.py`, `tools/art/build_all.py`, `tools/gen_docs.py`, `tools/preview/` (see `docs/BUILD_NOTES.md`).
 - New docs: `README.md`, `docs/ARCHITECTURE.md`, generated `docs/WARDS.md`.
 

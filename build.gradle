@@ -72,6 +72,8 @@ tasks.withType(JavaCompile).configureEach {
 }
 
 jar {
+    // the CI client driver is only ever run from the build's class directories, never shipped
+    exclude 'com/seleris/selarium/client/dev/**'
     manifest {
         attributes([
                 'Specification-Title'     : 'selarium',
