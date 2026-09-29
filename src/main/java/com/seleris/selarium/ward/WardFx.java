@@ -1,7 +1,6 @@
 package com.seleris.selarium.ward;
 
 import com.seleris.selarium.particle.GlowParticleOptions;
-import com.seleris.selarium.util.Facets;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
@@ -35,8 +34,7 @@ public final class WardFx {
     }
 
     /**
-     * A bright burst of sparks, e.g. when a projectile is deflected or a death is prevented. The sparks fly along the
-     * corners of a cube, so the burst is a faceted star rather than a round puff.
+     * A bright burst of sparks, e.g. when a projectile is deflected or a death is prevented.
      */
     public static void burst(ServerLevel level, Vec3 at, WardType type, int count, double spread) {
         starburst(level, at, GlowParticleOptions.spark(WardStyles.secondary(type), 0.9F), count, 0.05D + Math.min(0.07D, spread * 0.05D), 1.0D);
@@ -44,17 +42,16 @@ public final class WardFx {
                 Math.max(1, count / 2), spread * 0.5D, spread * 0.5D, spread * 0.5D, 0.03D);
     }
 
-    /** {@code count} particles (at most 26) thrown outwards along the directions of a cube's faces, edges and corners. */
+    /** {@code count} particles thrown outwards in random directions, like the puff of a totem. */
     private static void starburst(ServerLevel level, Vec3 at, GlowParticleOptions options, int count, double speed, double lift) {
-        double[][] directions = Facets.CUBE_DIRECTIONS;
-        double keep = Math.min(1.0D, Math.max(1, count) / (double) directions.length);
-        for (double[] d : directions) {
-            if (level.random.nextDouble() > keep) {
-                continue;
-            }
-            double v = speed * (0.75D + 0.5D * level.random.nextDouble());
+        for (int i = 0; i < Math.max(1, count); i++) {
+            double x = level.random.nextGaussian();
+            double y = level.random.nextGaussian();
+            double z = level.random.nextGaussian();
+            double length = Math.max(1.0E-4D, Math.sqrt(x * x + y * y + z * z));
+            double v = speed * (0.75D + 0.5D * level.random.nextDouble()) / length;
             // with a count of zero the "offset" is the particle's velocity
-            level.sendParticles(options, at.x, at.y, at.z, 0, d[0] * v, d[1] * v * lift, d[2] * v, 1.0D);
+            level.sendParticles(options, at.x, at.y, at.z, 0, x * v, y * v * lift, z * v, 1.0D);
         }
     }
 

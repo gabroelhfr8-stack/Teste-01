@@ -64,7 +64,7 @@ public final class ProjectionShellEvents {
             poseStack.pushPose();
             poseStack.translate(cx - 0.5D - camera.x, cy - 0.5D - camera.y, cz - 0.5D - camera.z);
             Vec3 viewer = camera.subtract(cx, cy, cz);
-            WardShellRenderer.draw(poseStack, buffers, view.type(), view.range(), strength, time, viewer, view.pos().asLong());
+            WardShellRenderer.draw(poseStack, buffers, view.type(), view.range(), strength, time, viewer, view.pos().asLong(), false);
             poseStack.popPose();
         }
         buffers.endBatch();

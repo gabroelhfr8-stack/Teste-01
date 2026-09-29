@@ -46,11 +46,11 @@ public final class SelariumClientConfig {
                 .defineEnum("wardShells", ShellMode.NEAR);
         SHELL_OPACITY = builder.comment("Opacity multiplier for ward shells (0 = invisible, 1 = default, 2 = strong).")
                 .defineInRange("shellOpacity", 1.0D, 0.0D, 2.0D);
-        SIGIL_ANIMATIONS = builder.comment("Animate sigils (rotating rings, pulsing glyph). Disable for a static sigil.")
+        SIGIL_ANIMATIONS = builder.comment("Animate sigils (rings that tick round, pulsing glyph). Disable for a static sigil.")
                 .define("sigilAnimations", true);
         SIGIL_FLOATING_RUNES = builder.comment("Draw runes orbiting active sigils and the floating focus crystal.")
                 .define("sigilFloatingRunes", true);
-        SIGIL_LIGHT_BEAM = builder.comment("Draw a faint column of light above active sigils.")
+        SIGIL_LIGHT_BEAM = builder.comment("Draw a column of light that rises from an active sigil to the top of its field.")
                 .define("sigilLightBeam", true);
         AMBIENT_PARTICLES = builder.comment("Spawn ambient particles from sigils, tanks and grinders.")
                 .define("ambientParticles", true);

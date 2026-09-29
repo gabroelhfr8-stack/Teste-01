@@ -1,6 +1,5 @@
 package com.seleris.selarium.blockentity;
 
-import com.seleris.selarium.util.Facets;
 import com.seleris.selarium.config.SelariumCommonConfig;
 import com.seleris.selarium.dust.DustDefinition;
 import com.seleris.selarium.dust.DustPurity;
@@ -26,6 +25,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -70,6 +70,8 @@ public class ArcaneSigilBlockEntity extends BlockEntity implements WardFieldSour
     private long lastUpkeepTick = -1L;
     private int lastUpkeepCost;
     private boolean lastUpkeepPaid;
+    /** Active but unable to pay its upkeep: the field does nothing until mana is available again (shown dimmed). */
+    private boolean inert;
     private String lastUpkeepDebug = "not paid yet";
     // client-only bookkeeping used to detect visual transitions (never saved)
     private boolean clientSeen;
@@ -134,7 +136,6 @@ public class ArcaneSigilBlockEntity extends BlockEntity implements WardFieldSour
             for (int i = 0; i < 8; i++) {
                 double angle = random.nextDouble() * Math.PI * 2.0D;
                 double radius = 0.15D + random.nextDouble() * 0.3D;
-                radius *= Facets.octagonRadius(angle);
                 level.addParticle(GlowParticleOptions.spark(0xE6DBFF, 0.8F), cx + Math.cos(angle) * radius, cy + 0.05D,
                         cz + Math.sin(angle) * radius, 0.0D, 0.02D, 0.0D);
             }
@@ -145,7 +146,6 @@ public class ArcaneSigilBlockEntity extends BlockEntity implements WardFieldSour
             for (int i = 0; i < 16; i++) {
                 double angle = random.nextDouble() * Math.PI * 2.0D;
                 double radius = 0.2D + random.nextDouble() * 0.28D;
-                radius *= Facets.octagonRadius(angle);
                 level.addParticle(GlowParticleOptions.rune(secondary, 1.0F), cx + Math.cos(angle) * radius, cy + 0.1D,
                         cz + Math.sin(angle) * radius, 0.0D, 0.03D + random.nextDouble() * 0.03D, 0.0D);
                 level.addParticle(GlowParticleOptions.wisp(primary, 1.0F), cx + Math.cos(angle) * radius, cy + 0.05D,
@@ -156,15 +156,13 @@ public class ArcaneSigilBlockEntity extends BlockEntity implements WardFieldSour
             for (int i = 0; i < 10; i++) {
                 double angle = random.nextDouble() * Math.PI * 2.0D;
                 double radius = 0.1D + random.nextDouble() * 0.35D;
-                radius *= Facets.octagonRadius(angle);
                 level.addParticle(GlowParticleOptions.wisp(primary, 0.8F), cx + Math.cos(angle) * radius, cy + 0.05D,
                         cz + Math.sin(angle) * radius, 0.0D, 0.015D, 0.0D);
             }
         }
-        if (active && level.getGameTime() % 5L == 0L) {
+        if (active && !inert && level.getGameTime() % 5L == 0L) {
             double angle = random.nextDouble() * Math.PI * 2.0D;
             double radius = 0.34D + random.nextDouble() * 0.12D;
-            radius *= Facets.octagonRadius(angle);
             level.addParticle(GlowParticleOptions.wisp(primary, 0.85F), cx + Math.cos(angle) * radius, cy,
                     cz + Math.sin(angle) * radius, 0.0D, 0.018D + random.nextDouble() * 0.012D, 0.0D);
             if (random.nextInt(3) == 0) {
@@ -281,7 +279,28 @@ public class ArcaneSigilBlockEntity extends BlockEntity implements WardFieldSour
         lastUpkeepCost = Math.max(0, cost);
         lastUpkeepPaid = paid;
         lastUpkeepDebug = debug == null || debug.isBlank() ? (paid ? "paid" : "not paid") : debug;
-        setChanged();
+        boolean nowInert = !paid && cost > 0;
+        if (nowInert != inert) {
+            inert = nowInert;
+            tellOwner(inert ? "message.selarium.ward.inert" : "message.selarium.ward.resumed");
+            setChangedAndSync();
+        } else {
+            setChanged();
+        }
+    }
+
+    /** True while the ward is on but cannot pay its upkeep, so it protects nothing (drawn dimmed on the client). */
+    public boolean isInert() {
+        return active && inert;
+    }
+
+    private void tellOwner(String messageKey) {
+        if (level instanceof ServerLevel serverLevel && owner != null) {
+            ServerPlayer player = serverLevel.getServer().getPlayerList().getPlayer(owner);
+            if (player != null) {
+                player.displayClientMessage(Component.translatable(messageKey, Component.translatable(wardType.getTranslationKey())), true);
+            }
+        }
     }
 
     public boolean hasRecentPaidUpkeep(int graceTicks) {
@@ -454,6 +473,7 @@ public class ArcaneSigilBlockEntity extends BlockEntity implements WardFieldSour
         lastUpkeepCost = 0;
         lastUpkeepPaid = false;
         lastUpkeepDebug = "not paid yet";
+        inert = false;
         range = Math.max(1, definition.range());
         setChangedAndSync();
         playCue(SoundEvents.BEACON_ACTIVATE, 0.6F, 1.5F);
@@ -464,6 +484,7 @@ public class ArcaneSigilBlockEntity extends BlockEntity implements WardFieldSour
         boolean wasActive = active;
         cleanupTemporaryWardBlocks();
         active = false;
+        inert = false;
         wardDurationRemainingTicks = 0;
         wardCooldownRemainingTicks = Math.max(wardCooldownRemainingTicks, cooldownTicks);
         setChangedAndSync();
@@ -526,6 +547,7 @@ public class ArcaneSigilBlockEntity extends BlockEntity implements WardFieldSour
         tag.put("DustComponents", componentList);
         tag.putString("WardType", wardType.getSerializedName());
         tag.putBoolean("Active", active);
+        tag.putBoolean("Inert", inert);
         tag.putInt("InternalManaBuffer", internalManaBuffer);
         tag.putInt("Range", range);
         tag.putLong("CreatedGameTime", createdGameTime);
@@ -563,6 +585,7 @@ public class ArcaneSigilBlockEntity extends BlockEntity implements WardFieldSour
         }
         wardType = WardType.bySerializedName(tag.getString("WardType"));
         active = tag.getBoolean("Active") && wardType != WardType.NONE;
+        inert = tag.getBoolean("Inert");
         internalManaBuffer = Math.max(0, Math.min(SelariumCommonConfig.AMBIENT_WARD_MAX_INTERNAL_BUFFER.get(), tag.getInt("InternalManaBuffer")));
         range = Math.max(1, tag.getInt("Range"));
         createdGameTime = tag.getLong("CreatedGameTime");
