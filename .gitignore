@@ -16,3 +16,6 @@
 __pycache__/
 *.pyc
 /dist/
+
+# javac crash logs
+javac.*.args

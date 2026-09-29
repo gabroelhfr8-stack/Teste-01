@@ -6,6 +6,7 @@ import com.seleris.selarium.blockentity.ManaTankBlockEntity;
 import com.seleris.selarium.dust.DustDefinition;
 import com.seleris.selarium.dust.DustPurity;
 import com.seleris.selarium.dust.DustType;
+import com.seleris.selarium.inscription.ScrollData;
 import com.seleris.selarium.registry.SelariumBlocks;
 import com.seleris.selarium.registry.SelariumRecipeTypes;
 import com.seleris.selarium.ward.WardActivationService;
@@ -26,6 +27,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -35,6 +37,7 @@ import net.minecraftforge.gametest.GameTestHolder;
 import net.minecraftforge.gametest.PrefixGameTestTemplate;
 import net.minecraftforge.registries.RegistryObject;
 
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -178,6 +181,31 @@ public final class SelariumGameTests {
         helper.assertTrue(restored.getTotalComponents() == 2, "component count should survive, got " + restored.getTotalComponents());
         helper.assertTrue(restored.hasComponent(DustType.AEGIS, DustPurity.REFINED), "refined aegis should survive");
         helper.assertTrue(restored.getInternalManaBuffer() == 42, "internal mana should survive, got " + restored.getInternalManaBuffer());
+        helper.succeed();
+    }
+
+    @GameTest(template = EMPTY)
+    public static void advancementsLoad(GameTestHelper helper) {
+        var manager = helper.getLevel().getServer().getAdvancements();
+        // the ones the code grants by id must exist, plus the root that carries the background
+        for (String name : List.of("root", "sigil", "first_ward", "refined_ward", "all_wards",
+                "attunement_1", "attunement_2", "attunement_3", "attunement_4")) {
+            helper.assertTrue(manager.getAdvancement(id(name)) != null, "missing advancement selarium:" + name);
+        }
+        long count = manager.getAllAdvancements().stream().filter(advancement -> advancement.getId().getNamespace().equals(Selarium.MOD_ID)).count();
+        helper.assertTrue(count >= 17, "expected at least 17 Selarium advancements, found " + count);
+        helper.succeed();
+    }
+
+    @GameTest(template = EMPTY)
+    public static void scrollsRememberTheirCreator(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer();
+        ItemStack ward = ScrollData.ward(player, WardType.BULWARK);
+        helper.assertTrue(player.getUUID().equals(ScrollData.creator(ward)), "creator id should be stored");
+        helper.assertTrue(player.getGameProfile().getName().equals(ScrollData.creatorName(ward)), "creator name should be stored");
+        helper.assertTrue(ScrollData.ward(ward) == WardType.BULWARK, "ward type should be stored");
+        ItemStack attunement = ScrollData.attunement(player, 3);
+        helper.assertTrue(ScrollData.tier(attunement) == 3, "tier should be stored");
         helper.succeed();
     }
 
