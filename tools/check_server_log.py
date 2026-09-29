@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Scan a Forge server log for problems that matter and fail (exit 1) when found.
 
-Ignored as benign: freshly created config files ("Incorrect key ... corrected from null"),
-EULA / world-preparation chatter. Everything else at ERROR/FATAL level that mentions Selarium,
+Ignored as benign: freshly created config files ("Incorrect key ... corrected from null") and the
+missing server.properties of a first run. Everything else at ERROR/FATAL level that mentions Selarium,
 datapack parsing or an exception is a failure.
 
 Usage: python3 tools/check_server_log.py run/logs/latest.log
@@ -14,7 +14,7 @@ import sys
 from pathlib import Path
 
 LEVEL = re.compile(r"/(WARN|ERROR|FATAL)\]")
-IGNORE = re.compile(r"Incorrect key .* was corrected from null|was corrected from null to its default")
+IGNORE = re.compile(r"was corrected from null|Failed to load properties from file: server\.properties")
 BAD = re.compile(r"selarium|Parsing error|Couldn't parse|Failed to load|Exception|Unable to load|Error loading|missing", re.I)
 
 

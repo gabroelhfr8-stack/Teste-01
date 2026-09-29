@@ -51,3 +51,49 @@ jobs:
           name: run-logs
           path: run/logs/
           if-no-files-found: ignore
+
+  # Boots the real game (Mesa software OpenGL on a virtual display), builds a showcase world and takes
+  # screenshots, so broken models, textures, particles or renderers show up as a crash or a log error.
+  # Screenshots are attached to the run and also printed into the log (see tools/dump_smoke.py).
+  client-smoke:
+    name: Client smoke test
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Install software OpenGL and X11 libraries
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb xauth libgl1 libgl1-mesa-dri libglx-mesa0 mesa-utils \
+            libxrandr2 libxcursor1 libxi6 libxxf86vm1 libxrender1 libxext6 libxinerama1 libopenal1 python3-pil
+      - name: Client options
+        run: |
+          mkdir -p run
+          printf '%s\n' 'onboardAccessibility:false' 'pauseOnLostFocus:false' 'tutorialStep:none' \
+            'renderDistance:8' 'maxFps:60' 'guiScale:2' 'soundCategory_master:0.0' > run/options.txt
+      - name: Play and take screenshots
+        timeout-minutes: 20
+        run: xvfb-run -a -s "-screen 0 1280x720x24" ./gradlew runClient -Psmoketest --no-daemon --stacktrace
+        env:
+          LIBGL_ALWAYS_SOFTWARE: "1"
+          MESA_GL_VERSION_OVERRIDE: "4.5"
+          MESA_GLSL_VERSION_OVERRIDE: "450"
+      - name: Report
+        if: always()
+        run: python3 tools/dump_smoke.py run
+      - name: Upload screenshots and logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: client-smoke
+          path: |
+            run/smoke/
+            run/logs/
+            run/crash-reports/
+          if-no-files-found: ignore

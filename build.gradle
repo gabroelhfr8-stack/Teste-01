@@ -40,6 +40,15 @@ minecraft {
 
         client {
             property 'forge.enabledGameTestNamespaces', 'selarium'
+
+            // CI: ./gradlew runClient -Psmoketest boots the game, builds a showcase and takes screenshots
+            // (see ClientSmokeTest); it is inert without the flag.
+            if (providers.gradleProperty('smoketest').isPresent()) {
+                property 'selarium.smoketest', 'true'
+                property 'forge.logging.console.level', 'info'
+                jvmArgs '-Xmx2G'
+                args '--width', '854', '--height', '480'
+            }
         }
 
         server {
