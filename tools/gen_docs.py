@@ -58,7 +58,7 @@ def categories() -> dict[str, str]:
 def config_defaults() -> dict[str, dict[str, int]]:
     text = (JAVA / "config" / "SelariumCommonConfig.java").read_text(encoding="utf-8")
     out: dict[str, dict[str, int]] = {}
-    for m in re.finditer(r'mvpWardConfigs\.put\(WardType\.([A-Z_]+),\s*defineMvpWard\(builder,\s*"[a-z_]+",\s*(\d+),\s*(\d+),\s*(\d+),\s*(\d+),\s*(\d+),', text):
+    for m in re.finditer(r'mvpWardConfigs\.put\(WardType\.([A-Z_]+),\s*defineMvpWard\(builder,\s*"[A-Za-z_]+",\s*(\d+),\s*(\d+),\s*(\d+),\s*(\d+),\s*(\d+),', text):
         out[m.group(1)] = {"range": int(m.group(2)), "interval": int(m.group(3)), "duration": int(m.group(4)),
                            "cooldown": int(m.group(5)), "mana": int(m.group(6))}
     for ward in ("whispering", "spectral", "bulwark", "rejuvenation", "featherweight", "grounding", "magnetism",

@@ -103,7 +103,7 @@ Total: **32 proteções**. O alcance é um raio **esférico** em blocos, o mesmo
 | **Ward de Disrupção** | Arcana, Vínculo, Dobra | 14 | 2s | 20 | 300s | 35s |
 | **Ward de Recompensa** | Arcana, Foco Refinado, Vital Refinada, Crono Refinado, Vínculo Refinado | 12 | 3s | 28 | 300s | 40s |
 | **Ward Imortal** | Arcana, Égide Refinada, Vital Refinada, Crono Refinado, Vínculo Refinado | 8 | 1s | 80 | 300s | 60s |
-| **Ward de Elo de Alma** | Arcana, Vínculo Refinado, Vital Refinada, Eco Refinado | — | — | — | — | — |
+| **Ward de Elo de Alma** | Arcana, Vínculo Refinado, Vital Refinada, Eco Refinado | 9 | 2s | 25 | 300s | 45s |
 | **Ward de Deflexão** | Arcana, Égide Refinada, Dobra Refinada, Foco Refinado | 10 | 1s | 25 | 300s | 35s |
 
 - **Ward de Disrupção** — Interrompe teletransportes.
