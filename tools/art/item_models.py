@@ -52,12 +52,12 @@ def scroll(ribbon_tex: str | None, seal: bool) -> Model:
     if ribbon_tex:
         m.box(3.0, 6.0, 7.3, 13.0, 7.6, 8.7, "ribbon", name="ribbon")
     if seal:
-        m.box(6.4, 4.2, 8.6, 9.6, 7.4, 9.1, {"north": "seal", "south": "seal", "up": "seal", "down": "seal", "east": "seal", "west": "seal"},
+        m.box(5.9, 3.6, 8.6, 10.1, 7.8, 9.1, {"north": "seal", "south": "seal", "up": "seal", "down": "seal", "east": "seal", "west": "seal"},
               uv={"north": [0, 0, 16, 16], "south": [0, 0, 16, 16]}, name="seal")
         # tintindex 0 on every seal face so the client can colour it per ward
         for face in m.elements[-1]["faces"].values():
             face["tintindex"] = 0
-        m.box(6.4, 4.2, 6.9, 9.6, 7.4, 7.4, {"north": "seal", "south": "seal", "up": "seal", "down": "seal", "east": "seal", "west": "seal"},
+        m.box(5.9, 3.6, 6.9, 10.1, 7.8, 7.4, {"north": "seal", "south": "seal", "up": "seal", "down": "seal", "east": "seal", "west": "seal"},
               uv={"north": [0, 0, 16, 16], "south": [0, 0, 16, 16]}, name="seal_back")
         for face in m.elements[-1]["faces"].values():
             face["tintindex"] = 0

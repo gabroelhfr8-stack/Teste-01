@@ -19,7 +19,9 @@ public class SelariumCodexScreen extends Screen {
     private static final int PANEL_WIDTH = 300;
     private static final int PANEL_HEIGHT = 210;
     private static final int ATLAS_COLUMNS = 8;
-    private static final int ATLAS_CELL = 22;
+    private static final int ATLAS_CELL = 20;
+    private static final int ATLAS_LEFT = 121;
+    private static final int ATLAS_TOP = 43;
     private static final List<CodexPage> PAGES = createPages();
     private WardType atlasSelection = WardType.NONE;
     private int selectedPage;
@@ -125,40 +127,40 @@ public class SelariumCodexScreen extends Screen {
         List<WardDefinition> wards = WardDefinitions.all();
         WardType selected = selectedWard(wards);
         WardType hovered = WardType.NONE;
-        int gridLeft = left + 112;
-        int gridTop = top + 46;
+        int gridLeft = left + ATLAS_LEFT;
+        int gridTop = top + ATLAS_TOP;
         for (int index = 0; index < wards.size(); index++) {
             WardType type = wards.get(index).type();
             int x = gridLeft + (index % ATLAS_COLUMNS) * ATLAS_CELL;
             int y = gridTop + (index / ATLAS_COLUMNS) * ATLAS_CELL;
-            boolean over = mouseX >= x && mouseX < x + 20 && mouseY >= y && mouseY < y + 20;
+            boolean over = mouseX >= x && mouseX < x + 18 && mouseY >= y && mouseY < y + 18;
             if (over) {
                 hovered = type;
             }
-            graphics.fill(x, y, x + 20, y + 20, type == selected ? WorkshopUi.CYAN : 0xFF6D463E);
-            graphics.fill(x + 1, y + 1, x + 19, y + 19, over ? 0xFF3D3350 : 0xFF241D2E);
+            graphics.fill(x, y, x + 18, y + 18, type == selected ? WorkshopUi.CYAN : 0xFF6D463E);
+            graphics.fill(x + 1, y + 1, x + 17, y + 17, over ? 0xFF3D3350 : 0xFF241D2E);
             int rgb = WardStyles.primary(type);
             graphics.setColor(((rgb >> 16) & 0xFF) / 255.0F, ((rgb >> 8) & 0xFF) / 255.0F, (rgb & 0xFF) / 255.0F, 1.0F);
-            graphics.blit(glyph(type), x + 2, y + 2, 16, 16, 0.0F, 0.0F, 32, 32, 32, 32);
+            graphics.blit(glyph(type), x + 1, y + 1, 16, 16, 0.0F, 0.0F, 32, 32, 32, 32);
             graphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
         }
 
         int textLeft = left + 114;
-        int y = gridTop + 4 * ATLAS_CELL + 4;
+        int y = gridTop + 4 * ATLAS_CELL + 5;
         WardDefinitions.get(selected).ifPresent(definition -> {
-            int rgb = WardStyles.primary(selected);
-            graphics.drawString(font, Component.translatable(selected.getTranslationKey()), textLeft, y, inkFor(rgb), false);
-            graphics.drawString(font, Component.translatable("tooltip.selarium.scroll.category",
-                    Component.translatable(WardStyles.category(selected).getTranslationKey())), textLeft, y + 10, WorkshopUi.MUTED, false);
-            int line = y + 22;
+            Component name = Component.translatable(selected.getTranslationKey());
+            graphics.drawString(font, name, textLeft, y, inkFor(WardStyles.primary(selected)), false);
+            graphics.drawString(font, Component.translatable(WardStyles.category(selected).getTranslationKey()),
+                    textLeft + font.width(name) + 6, y, WorkshopUi.MUTED, false);
+            int line = y + 11;
             for (FormattedCharSequence sequence : font.split(Component.translatable("screen.selarium.codex.atlas.detail",
                     requirements(definition), definition.range(), definition.upkeepCostValue(),
-                    definition.tickInterval()), 170)) {
+                    definition.tickInterval()), 172)) {
                 graphics.drawString(font, sequence, textLeft, line, WorkshopUi.INK, false);
                 line += 10;
             }
             for (FormattedCharSequence sequence : font.split(Component.translatable("screen.selarium.codex.ward_note."
-                    + selected.getSerializedName()), 170)) {
+                    + selected.getSerializedName()), 172)) {
                 graphics.drawString(font, sequence, textLeft, line + 2, WorkshopUi.MUTED, false);
                 line += 10;
             }
@@ -187,13 +189,13 @@ public class SelariumCodexScreen extends Screen {
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (button == 0 && PAGES.get(selectedPage).atlas()) {
-            int gridLeft = (width - PANEL_WIDTH) / 2 + 112;
-            int gridTop = (height - PANEL_HEIGHT) / 2 + 46;
+            int gridLeft = (width - PANEL_WIDTH) / 2 + ATLAS_LEFT;
+            int gridTop = (height - PANEL_HEIGHT) / 2 + ATLAS_TOP;
             List<WardDefinition> wards = WardDefinitions.all();
             for (int index = 0; index < wards.size(); index++) {
                 int x = gridLeft + (index % ATLAS_COLUMNS) * ATLAS_CELL;
                 int y = gridTop + (index / ATLAS_COLUMNS) * ATLAS_CELL;
-                if (mouseX >= x && mouseX < x + 20 && mouseY >= y && mouseY < y + 20) {
+                if (mouseX >= x && mouseX < x + 18 && mouseY >= y && mouseY < y + 18) {
                     atlasSelection = wards.get(index).type();
                     return true;
                 }

@@ -251,24 +251,30 @@ public final class ClientSmokeTest {
         steps.add(new Step("codex wards", "23_gui_codex_wards", 6, mc -> pressRight(mc, 4)));
         steps.add(new Step("codex atlas", "28_gui_codex_atlas", 10, mc -> {
             pressRight(mc, 1);
-            int left = (mc.screen.width - 300) / 2 + 112;
-            int top = (mc.screen.height - 210) / 2 + 46;
-            mc.screen.mouseClicked(left + 3 * 22 + 5, top + 22 + 5, 0);
+            int left = (mc.screen.width - 300) / 2 + 121;
+            int top = (mc.screen.height - 210) / 2 + 43;
+            mc.screen.mouseClicked(left + 3 * 20 + 8, top + 20 + 8, 0);
         }));
         steps.add(new Step("grimoire", "24_gui_grimoire", 20, mc ->
                 SelariumClientHooks.openWardingGrimoire(WardingRuleSet.defaults(mc.player.getUUID()))));
         steps.add(new Step("close screen", null, 10, mc -> mc.player.closeContainer()));
         // a container must be fully closed on the server before the next one opens, or the late close packet shuts it
+        // a menu closes on the server as soon as the player is out of reach, so stand next to each machine first
+        steps.add(new Step("near grinder", null, 10, camera(-9.5, 2.0, 19, -9.5, 0.6, 16.5)));
         steps.add(new Step("grinder", "25_gui_grinder", 20, mc -> openMenu(mc, -10, 16)));
         steps.add(new Step("close grinder", null, 10, mc -> mc.player.closeContainer()));
+        steps.add(new Step("near bench", null, 10, camera(3.5, 2.0, 19, 3.5, 0.6, 16.5)));
         steps.add(new Step("inscription bench", "26_gui_inscription", 20, mc -> openMenu(mc, 3, 16)));
         steps.add(new Step("close bench", null, 10, mc -> mc.player.closeContainer()));
+        steps.add(new Step("near sigil", null, 10, camera(-20, 2.0, 3, -20, 0.3, 0)));
         steps.add(new Step("sigil", "27_gui_sigil", 20, mc -> openMenu(mc, -20, 0)));
         steps.add(new Step("close sigil", null, 10, mc -> mc.player.closeContainer()));
         steps.add(new Step("item catalog", "30_gui_item_catalog", 10, mc -> mc.setScreen(new CatalogScreen(catalog(mc), false))));
-        steps.add(new Step("scroll tooltips", "31_gui_tooltips_scrolls", 10, mc ->
-                mc.setScreen(new CatalogScreen(List.of(ScrollData.ward(mc.player, WardType.BANISHMENT), ScrollData.attunement(mc.player, 2)), true))));
-        steps.add(new Step("item tooltips", "32_gui_tooltips_items", 10, mc ->
+        steps.add(new Step("ward scroll tooltip", "31_gui_tooltip_ward_scroll", 10, mc ->
+                mc.setScreen(new CatalogScreen(List.of(ScrollData.ward(mc.player, WardType.BANISHMENT)), true))));
+        steps.add(new Step("attunement scroll tooltip", "32_gui_tooltip_attunement_scroll", 10, mc ->
+                mc.setScreen(new CatalogScreen(List.of(ScrollData.attunement(mc.player, 2)), true))));
+        steps.add(new Step("item tooltips", "34_gui_tooltip_items", 10, mc ->
                 mc.setScreen(new CatalogScreen(tooltipSamples(), true))));
         steps.add(new Step("grant advancements", null, 40, mc -> onServer(mc, ClientSmokeTest::grantAdvancements)));
         steps.add(new Step("advancements", "33_gui_advancements", 30, ClientSmokeTest::openAdvancements));
