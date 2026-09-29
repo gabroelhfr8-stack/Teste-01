@@ -39,8 +39,7 @@ public final class WorkshopButton extends Button {
         graphics.fill(x + 2, y + 2, x + w - 2, y + 3, lit ? 0xFFB4E7E5 : 0xFFB98B67);
         graphics.fill(x + 2, y + h - 3, x + w - 2, y + h - 2, 0xFF2A2432);
         Font font = Minecraft.getInstance().font;
-        String text = font.plainSubstrByWidth(getMessage().getString(), Math.max(4, w - 8));
-        graphics.drawCenteredString(font, text, x + w / 2, y + (h - 8) / 2,
+        WorkshopUi.centeredText(graphics, font, getMessage().getString(), x + w / 2, y + (h - 8) / 2, w - 8,
                 active || selected ? 0xFFF3EADD : 0xFFC9C0C5);
     }
 

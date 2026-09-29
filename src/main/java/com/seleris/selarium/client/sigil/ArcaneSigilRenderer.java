@@ -11,6 +11,7 @@ import com.seleris.selarium.client.vfx.WardShellRenderer;
 import com.seleris.selarium.config.SelariumClientConfig;
 import com.seleris.selarium.dust.DustDefinition;
 import com.seleris.selarium.dust.DustType;
+import com.seleris.selarium.util.Facets;
 import com.seleris.selarium.ward.WardStyles;
 import com.seleris.selarium.ward.WardType;
 import net.minecraft.client.Minecraft;
@@ -119,8 +120,9 @@ public class ArcaneSigilRenderer implements BlockEntityRenderer<ArcaneSigilBlock
             for (int i = 0; i < marks.size(); i++) {
                 DustType type = marks.get(i);
                 float angle = (float) (i * Math.PI * 2.0D / marks.size()) + (float) Math.toRadians(ringSpin);
-                float ox = Mth.cos(angle) * radius;
-                float oz = Mth.sin(angle) * radius;
+                float reach = radius * Facets.polygonRadius(angle, Facets.SIDES);      // marks travel along an octagon
+                float ox = Mth.cos(angle) * reach;
+                float oz = Mth.sin(angle) * reach;
                 poseStack.pushPose();
                 poseStack.translate(ox, 0.0F, oz);
                 VertexConsumer consumer = buffers.getBuffer(SelariumRenderTypes.decal(componentTexture(type)));
@@ -183,7 +185,7 @@ public class ArcaneSigilRenderer implements BlockEntityRenderer<ArcaneSigilBlock
             if (fieldType != WardType.NONE) {
                 Vec3 camera = Minecraft.getInstance().gameRenderer.getMainCamera().getPosition();
                 Vec3 viewer = camera.subtract(pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D);
-                WardShellRenderer.draw(poseStack, buffers, fieldType, Math.max(1, sigil.getRange()), activation, time, viewer);
+                WardShellRenderer.draw(poseStack, buffers, fieldType, Math.max(1, sigil.getRange()), activation, time, viewer, pos.asLong());
             }
         }
 
@@ -199,8 +201,9 @@ public class ArcaneSigilRenderer implements BlockEntityRenderer<ArcaneSigilBlock
         for (int i = 0; i < count; i++) {
             float angle = (float) Math.toRadians(time * 1.7F) + i * (float) (Math.PI * 2.0D / count);
             float bob = Mth.sin(time * 0.09F + i * 1.7F + phase) * 0.035F;
-            float rx = 0.5F + Mth.cos(angle) * 0.4F;
-            float rz = 0.5F + Mth.sin(angle) * 0.4F;
+            float reach = 0.4F * Facets.polygonRadius(angle, Facets.SIDES);         // an octagonal orbit, not a circle
+            float rx = 0.5F + Mth.cos(angle) * reach;
+            float rz = 0.5F + Mth.sin(angle) * reach;
             float ry = 0.42F + bob + 0.06F * Mth.sin(i * 2.1F);
             VertexConsumer consumer = buffers.getBuffer(SelariumRenderTypes.additive(ORBIT_RUNES[i % ORBIT_RUNES.length]));
             VfxDraw.billboard(consumer, poseStack, camera, rx, ry, rz, 0.07F, 0.0F, style.secondary(),
@@ -218,7 +221,7 @@ public class ArcaneSigilRenderer implements BlockEntityRenderer<ArcaneSigilBlock
 
         Quaternionf camera = Minecraft.getInstance().getEntityRenderDispatcher().cameraOrientation();
         VfxDraw.billboard(buffers.getBuffer(SelariumRenderTypes.additive(GLOW)), poseStack, camera, 0.5F, cy, 0.5F,
-                0.26F + 0.03F * Mth.sin(time * 0.13F), 0.0F, style.primary(), VfxDraw.alpha(0.5F * activation), LightTexture.FULL_BRIGHT);
+                0.26F + 0.03F * Mth.sin(time * 0.13F), time * 0.8F, style.primary(), VfxDraw.alpha(0.5F * activation), LightTexture.FULL_BRIGHT);
 
         poseStack.pushPose();
         poseStack.translate(0.5F, cy, 0.5F);

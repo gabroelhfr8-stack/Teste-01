@@ -1,5 +1,6 @@
 package com.seleris.selarium.blockentity;
 
+import com.seleris.selarium.util.Facets;
 import com.seleris.selarium.config.SelariumCommonConfig;
 import com.seleris.selarium.dust.DustDefinition;
 import com.seleris.selarium.dust.DustPurity;
@@ -133,6 +134,7 @@ public class ArcaneSigilBlockEntity extends BlockEntity implements WardFieldSour
             for (int i = 0; i < 8; i++) {
                 double angle = random.nextDouble() * Math.PI * 2.0D;
                 double radius = 0.15D + random.nextDouble() * 0.3D;
+                radius *= Facets.octagonRadius(angle);
                 level.addParticle(GlowParticleOptions.spark(0xE6DBFF, 0.8F), cx + Math.cos(angle) * radius, cy + 0.05D,
                         cz + Math.sin(angle) * radius, 0.0D, 0.02D, 0.0D);
             }
@@ -143,6 +145,7 @@ public class ArcaneSigilBlockEntity extends BlockEntity implements WardFieldSour
             for (int i = 0; i < 16; i++) {
                 double angle = random.nextDouble() * Math.PI * 2.0D;
                 double radius = 0.2D + random.nextDouble() * 0.28D;
+                radius *= Facets.octagonRadius(angle);
                 level.addParticle(GlowParticleOptions.rune(secondary, 1.0F), cx + Math.cos(angle) * radius, cy + 0.1D,
                         cz + Math.sin(angle) * radius, 0.0D, 0.03D + random.nextDouble() * 0.03D, 0.0D);
                 level.addParticle(GlowParticleOptions.wisp(primary, 1.0F), cx + Math.cos(angle) * radius, cy + 0.05D,
@@ -153,6 +156,7 @@ public class ArcaneSigilBlockEntity extends BlockEntity implements WardFieldSour
             for (int i = 0; i < 10; i++) {
                 double angle = random.nextDouble() * Math.PI * 2.0D;
                 double radius = 0.1D + random.nextDouble() * 0.35D;
+                radius *= Facets.octagonRadius(angle);
                 level.addParticle(GlowParticleOptions.wisp(primary, 0.8F), cx + Math.cos(angle) * radius, cy + 0.05D,
                         cz + Math.sin(angle) * radius, 0.0D, 0.015D, 0.0D);
             }
@@ -160,6 +164,7 @@ public class ArcaneSigilBlockEntity extends BlockEntity implements WardFieldSour
         if (active && level.getGameTime() % 5L == 0L) {
             double angle = random.nextDouble() * Math.PI * 2.0D;
             double radius = 0.34D + random.nextDouble() * 0.12D;
+            radius *= Facets.octagonRadius(angle);
             level.addParticle(GlowParticleOptions.wisp(primary, 0.85F), cx + Math.cos(angle) * radius, cy,
                     cz + Math.sin(angle) * radius, 0.0D, 0.018D + random.nextDouble() * 0.012D, 0.0D);
             if (random.nextInt(3) == 0) {

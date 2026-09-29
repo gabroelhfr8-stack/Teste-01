@@ -6,7 +6,6 @@ import com.seleris.selarium.ward.WardDefinitions;
 import com.seleris.selarium.ward.WardStyles;
 import com.seleris.selarium.ward.WardType;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;

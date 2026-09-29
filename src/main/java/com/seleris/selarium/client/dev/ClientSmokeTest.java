@@ -14,6 +14,7 @@ import com.seleris.selarium.grimoire.WardingRuleSet;
 import com.seleris.selarium.inscription.ScrollData;
 import com.seleris.selarium.registry.SelariumBlocks;
 import com.seleris.selarium.registry.SelariumItems;
+import com.seleris.selarium.worldgen.ArcaneGeodeFeature;
 import com.seleris.selarium.ward.WardDefinition;
 import com.seleris.selarium.ward.WardDefinitions;
 import com.seleris.selarium.ward.WardProjectionSavedData;
@@ -49,6 +50,7 @@ import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.LevelSettings;
 import net.minecraft.world.level.WorldDataConfiguration;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.AmethystClusterBlock;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -222,6 +224,8 @@ public final class ClientSmokeTest {
         steps.add(new Step("night falls", null, 20, mc -> time(mc, MIDNIGHT)));
         steps.add(new Step("bulwark close (night)", "04_bulwark_close_night", 80, camera(-16.8, 3.2, 3.2, -20, 0.8, 0)));
         steps.add(new Step("bulwark from above (night)", "05_bulwark_top_night", 40, camera(-20, 6, 0.01, -20, 0, 0)));
+        steps.add(new Step("facets close (night)", "36_facets_close_night", 60, camera(-20, 5, 13.5, -20, 5, 9)));
+        steps.add(new Step("dome from inside (night)", "37_dome_inside_night", 60, camera(-20, 2.5, 1, -25, 5, -8)));
         steps.add(new Step("banishment (night)", "06_banishment_night", 60, camera(6, 3.5, 7, 0, 1.5, 0)));
         steps.add(new Step("soft shell (night)", "07_soft_shell_night", 60, camera(-13, 3.5, -19, -20, 2, -26)));
         steps.add(new Step("runes shell (night)", "08_runes_shell_night", 60, camera(7, 3.5, -19, 0, 2, -26)));
@@ -239,6 +243,7 @@ public final class ClientSmokeTest {
         steps.add(new Step("grinders close", "21_grinders_close_day", 40, camera(-9, 1.7, 18.6, -9, 0.7, 16)));
         steps.add(new Step("tanks close", "22_tanks_close_day", 40, camera(-3, 1.6, 18.4, -3, 0.7, 16)));
         steps.add(new Step("crystals and materials", "16_materials_day", 40, camera(0, 2.4, 24, 0, 0.6, 20)));
+        steps.add(new Step("geode sample (day)", "35_geode_sample_day", 40, camera(30, 6, 12, 24, 3, 26)));
         steps.add(new Step("hud", "17_hud_day", 40, mc -> {
             mc.options.hideGui = false;
             camera(-5, 2.6, 22.5, -5, 0.8, 16).run(mc);
@@ -468,7 +473,59 @@ public final class ClientSmokeTest {
             }
             put(level, -10 + i, 20, state);
         }
+        buildGeodeSample(level, 24, base + 3, 26);
         LOGGER.info("SMOKE stage built at y={}", base);
+    }
+
+    /** The back half of a geode, generated with the real shape function, so its lumpy faceted profile can be seen. */
+    private static void buildGeodeSample(ServerLevel level, int cx, int cy, int cz) {
+        long shape = 1234567L;
+        int radius = 6;
+        int vertical = 4;
+        var random = level.getRandom();
+        BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
+        for (int dx = -9; dx <= 9; dx++) {
+            for (int dy = -6; dy <= 6; dy++) {
+                for (int dz = 0; dz <= 9; dz++) {
+                    double distance = ArcaneGeodeFeature.shape(dx, dy, dz, radius, vertical, shape);
+                    if (distance > 1.0D) {
+                        continue;
+                    }
+                    BlockState state;
+                    if (distance > 0.76D) {
+                        state = SelariumBlocks.ARCANE_GEODE_STONE.get().defaultBlockState();
+                    } else if (distance > 0.48D) {
+                        state = (random.nextInt(14) == 0 ? SelariumBlocks.BUDDING_ARCANE_CRYSTAL : SelariumBlocks.ARCANE_CRYSTAL_BLOCK).get().defaultBlockState();
+                    } else {
+                        state = Blocks.AIR.defaultBlockState();
+                    }
+                    level.setBlock(pos.set(cx + dx, cy + dy, cz + dz), state, 2);
+                }
+            }
+        }
+        // crystals growing inwards from the lining
+        Block[] clusters = {SelariumBlocks.SMALL_ARCANE_CRYSTAL_BUD.get(), SelariumBlocks.MEDIUM_ARCANE_CRYSTAL_BUD.get(),
+                SelariumBlocks.LARGE_ARCANE_CRYSTAL_BUD.get(), SelariumBlocks.ARCANE_CRYSTAL_CLUSTER.get()};
+        for (int dx = -8; dx <= 8; dx++) {
+            for (int dy = -5; dy <= 5; dy++) {
+                for (int dz = 0; dz <= 8; dz++) {
+                    BlockPos support = new BlockPos(cx + dx, cy + dy, cz + dz);
+                    if (!level.getBlockState(support).is(SelariumBlocks.ARCANE_CRYSTAL_BLOCK.get()) || random.nextInt(100) >= 38) {
+                        continue;
+                    }
+                    for (Direction facing : Direction.values()) {
+                        BlockPos target = support.relative(facing);
+                        if (level.getBlockState(target).isAir()) {
+                            BlockState cluster = clusters[random.nextInt(clusters.length)].defaultBlockState()
+                                    .setValue(AmethystClusterBlock.FACING, facing)
+                                    .setValue(AmethystClusterBlock.WATERLOGGED, false);
+                            level.setBlock(target, cluster, 2);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private static BlockPos put(ServerLevel level, int x, int z, BlockState state) {

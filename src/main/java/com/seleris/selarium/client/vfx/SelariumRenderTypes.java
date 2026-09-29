@@ -37,6 +37,24 @@ public final class SelariumRenderTypes extends RenderType {
         return ADDITIVE.apply(texture);
     }
 
+    /**
+     * {@link #additive} with linear filtering, for thin lines (facet edges, the runic outline, the rune band) that
+     * would shimmer with nearest-neighbour sampling when seen from a distance.
+     */
+    private static final Function<ResourceLocation, RenderType> ADDITIVE_SMOOTH = Util.memoize(texture -> create(
+            "selarium_additive_smooth", DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS, 256, false, true,
+            CompositeState.builder()
+                    .setShaderState(RENDERTYPE_EYES_SHADER)
+                    .setTextureState(new TextureStateShard(texture, true, false))
+                    .setTransparencyState(LIGHTNING_TRANSPARENCY)
+                    .setCullState(NO_CULL)
+                    .setWriteMaskState(COLOR_WRITE)
+                    .createCompositeState(false)));
+
+    public static RenderType additiveSmooth(ResourceLocation texture) {
+        return ADDITIVE_SMOOTH.apply(texture);
+    }
+
     /** Alpha-blended, fullbright, double-sided, no depth writes: for translucent shells and crystals. */
     public static RenderType glow(ResourceLocation texture) {
         return RenderType.entityTranslucentEmissive(texture);

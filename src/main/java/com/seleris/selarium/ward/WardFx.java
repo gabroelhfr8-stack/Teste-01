@@ -1,6 +1,7 @@
 package com.seleris.selarium.ward;
 
 import com.seleris.selarium.particle.GlowParticleOptions;
+import com.seleris.selarium.util.Facets;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
@@ -33,12 +34,28 @@ public final class WardFx {
                 count, width * 0.35D, target.getBbHeight() * 0.3D, width * 0.35D, 0.015D);
     }
 
-    /** A bright burst of sparks, e.g. when a projectile is deflected or a death is prevented. */
+    /**
+     * A bright burst of sparks, e.g. when a projectile is deflected or a death is prevented. The sparks fly along the
+     * corners of a cube, so the burst is a faceted star rather than a round puff.
+     */
     public static void burst(ServerLevel level, Vec3 at, WardType type, int count, double spread) {
-        level.sendParticles(GlowParticleOptions.spark(WardStyles.secondary(type), 0.9F), at.x, at.y, at.z,
-                count, spread, spread, spread, 0.06D);
+        starburst(level, at, GlowParticleOptions.spark(WardStyles.secondary(type), 0.9F), count, 0.05D + Math.min(0.07D, spread * 0.05D), 1.0D);
         level.sendParticles(GlowParticleOptions.wisp(WardStyles.primary(type), 1.1F), at.x, at.y, at.z,
                 Math.max(1, count / 2), spread * 0.5D, spread * 0.5D, spread * 0.5D, 0.03D);
+    }
+
+    /** {@code count} particles (at most 26) thrown outwards along the directions of a cube's faces, edges and corners. */
+    private static void starburst(ServerLevel level, Vec3 at, GlowParticleOptions options, int count, double speed, double lift) {
+        double[][] directions = Facets.CUBE_DIRECTIONS;
+        double keep = Math.min(1.0D, Math.max(1, count) / (double) directions.length);
+        for (double[] d : directions) {
+            if (level.random.nextDouble() > keep) {
+                continue;
+            }
+            double v = speed * (0.75D + 0.5D * level.random.nextDouble());
+            // with a count of zero the "offset" is the particle's velocity
+            level.sendParticles(options, at.x, at.y, at.z, 0, d[0] * v, d[1] * v * lift, d[2] * v, 1.0D);
+        }
     }
 
     /** A dotted line of sparks between two points (drain, soul-chain, magnetism...). */
@@ -60,6 +77,6 @@ public final class WardFx {
         level.sendParticles(GlowParticleOptions.ring(0xFFE6A8, 7), x, y, z, 1, 0.0D, 0.0D, 0.0D, 0.0D);
         level.sendParticles(GlowParticleOptions.ring(0xC9A8FF, 4), x, y + 0.02D, z, 1, 0.0D, 0.0D, 0.0D, 0.0D);
         level.sendParticles(GlowParticleOptions.rune(0xFFE6A8, 1.1F), x, y + 0.3D, z, 20, 0.5D, 0.3D, 0.5D, 0.05D);
-        level.sendParticles(GlowParticleOptions.spark(0xFFFFFF, 0.9F), x, y + 0.6D, z, 30, 0.4D, 0.6D, 0.4D, 0.12D);
+        starburst(level, new Vec3(x, y + 0.6D, z), GlowParticleOptions.spark(0xFFFFFF, 0.9F), 26, 0.12D, 1.3D);
     }
 }

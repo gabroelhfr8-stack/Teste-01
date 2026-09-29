@@ -68,8 +68,38 @@ public final class WorkshopUi {
         }
     }
 
+    /** Text that is shrunk (down to this scale) before it is cut, so long translations stay readable. */
+    private static final float MIN_TEXT_SCALE = 0.75F;
+
+    /** Draws {@code text} at (x, y); if it is wider than {@code maxWidth} it is shrunk, and only then cut with an ellipsis. */
     public static void smallText(GuiGraphics g, Font font, Component text, int x, int y, int maxWidth, int color) {
-        String clipped = font.plainSubstrByWidth(text.getString(), Math.max(4, maxWidth));
-        g.drawString(font, clipped, x, y, color, false);
+        fitted(g, font, text.getString(), x, y, maxWidth, color, false);
+    }
+
+    /** Like {@link #smallText} but centred on {@code centerX}. */
+    public static void centeredText(GuiGraphics g, Font font, String text, int centerX, int y, int maxWidth, int color) {
+        fitted(g, font, text, centerX, y, maxWidth, color, true);
+    }
+
+    private static void fitted(GuiGraphics g, Font font, String full, int x, int y, int maxWidth, int color, boolean centered) {
+        int limit = Math.max(4, maxWidth);
+        int width = font.width(full);
+        if (width <= limit) {
+            g.drawString(font, full, centered ? x - width / 2 : x, y, color, false);
+            return;
+        }
+        float scale = Math.max(MIN_TEXT_SCALE, limit / (float) width);
+        String shown = full;
+        if (width * scale > limit + 0.5F) {
+            int room = Math.max(4, (int) (limit / scale) - font.width("\u2026"));
+            shown = font.plainSubstrByWidth(full, room) + "\u2026";
+        }
+        float shownWidth = font.width(shown) * scale;
+        var pose = g.pose();
+        pose.pushPose();
+        pose.translate(centered ? x - shownWidth / 2.0F : x, y + (1.0F - scale) * 4.0F, 0.0F);   // stay centred on the line
+        pose.scale(scale, scale, 1.0F);
+        g.drawString(font, shown, 0, 0, color, false);
+        pose.popPose();
     }
 }

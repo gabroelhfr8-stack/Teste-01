@@ -96,7 +96,7 @@ public final class InscriptionScreen extends AbstractContainerScreen<Inscription
             return;
         }
         WorkshopUi.smallText(g, font, recipe.name(), 123, 33, 155, WorkshopUi.INK);
-        g.drawString(font, Component.translatable("gui.selarium.inscription.ingredients"), 124, 65, WorkshopUi.MUTED, false);
+        g.drawString(font, Component.translatable("gui.selarium.inscription.ingredients"), 124, 63, WorkshopUi.MUTED, false);
         g.drawString(font, Component.translatable("gui.selarium.inscription.status"), 122, 104, WorkshopUi.MUTED, false);
         WorkshopUi.smallText(g, font, menu.status().message(), 122, 116, 160,
                 menu.status() == InscriptionRecipe.Status.READY ? WorkshopUi.GOOD : WorkshopUi.BAD);
